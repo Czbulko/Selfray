@@ -631,39 +631,125 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         Your inner weather, made visible.
       </Text>
 
-      {/* Mirrors — коверфлоу-листалка (как старый медиаплеер): центр + по 2 карты с каждой стороны,
-          боковые повёрнуты в перспективу (rotateY). 24px от сабтайтла (2062+24=2086). */}
-      {/* @ts-ignore — контейнер с перспективой для 3D-наклона боковых карт */}
-      <div style={{ position: 'absolute', top: 2086, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px' }}>
-        {[
-          { x: -170, ry: 62, s: 0.8, z: 10 },
-          { x: -98, ry: 45, s: 0.9, z: 20 },
-          { x: 0, ry: 0, s: 1, z: 30 },
-          { x: 98, ry: -45, s: 0.9, z: 20 },
-          { x: 170, ry: -62, s: 0.8, z: 10 },
-        ].map((c, i) => (
-          // @ts-ignore — web-only карта коверфлоу (наклон в перспективу)
-          <div
-            key={i}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 76,
-              width: 250,
-              height: 360,
-              zIndex: c.z,
-              transformOrigin: 'center center',
-              transform: `translateX(${c.x}px) rotateY(${c.ry}deg) scale(${c.s})`,
-            }}
-          >
+      {/* Mirrors — коверфлоу-листалка: свайп по картам ИЛИ слайдер-таблетка листают карты. */}
+      <MirrorsCarousel />
+
+      {/* Аватарка 44×44, top 84 / right 28 */}
+      {/* @ts-ignore — web <img> */}
+      <img
+        src="/avatar.svg"
+        width={44}
+        height={44}
+        alt="avatar"
+        style={{ position: 'absolute', top: 84, right: 28, width: 44, height: 44, zIndex: 2 }}
+      />
+    </YStack>
+    </div>
+  )
+}
+
+// Коверфлоу-листалка Mirrors: центр + по 2 карты с каждой стороны (перспектива).
+// Листается свайпом по картам И слайдером-таблеткой снизу (бегунок = текущая карта).
+function MirrorsCarousel() {
+  const N = 5
+  const [idx, setIdx] = useState(2) // старт по центру (видны 2+1+2)
+  const clamp = (v: number) => Math.max(0, Math.min(N - 1, v))
+  const go = (d: number) => setIdx((v) => clamp(v + d))
+
+  // свайп по картам
+  const cdrag = useRef(false)
+  const csx = useRef(0)
+  const cdx = useRef(0)
+  const onCDown = (e: any) => {
+    cdrag.current = true
+    csx.current = e.clientX
+    cdx.current = 0
+  }
+  const onCMove = (e: any) => {
+    if (cdrag.current) cdx.current = e.clientX - csx.current
+  }
+  const onCUp = () => {
+    if (!cdrag.current) return
+    cdrag.current = false
+    if (Math.abs(cdx.current) > 40) go(cdx.current < 0 ? 1 : -1)
+  }
+
+  // слайдер-таблетка
+  const TRACK = 250
+  const THUMB = 96
+  const PAD = 4
+  const travel = TRACK - THUMB - PAD * 2
+  const thumbLeft = PAD + (N > 1 ? (idx / (N - 1)) * travel : 0)
+  const trackRef = useRef<HTMLDivElement>(null)
+  const sdrag = useRef(false)
+  const setFromX = (clientX: number) => {
+    const el = trackRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const z = window.innerWidth / DESIGN_WIDTH
+    const x = (clientX - rect.left) / z // в дизайн-px
+    const frac = Math.max(0, Math.min(1, (x - THUMB / 2 - PAD) / travel))
+    setIdx(clamp(Math.round(frac * (N - 1))))
+  }
+  const onSDown = (e: any) => {
+    sdrag.current = true
+    e.currentTarget.setPointerCapture?.(e.pointerId)
+    setFromX(e.clientX)
+  }
+  const onSMove = (e: any) => {
+    if (sdrag.current) setFromX(e.clientX)
+  }
+  const onSUp = () => {
+    sdrag.current = false
+  }
+
+  const cardStyle = (i: number): React.CSSProperties => {
+    const slot = i - idx
+    const a = Math.abs(slot)
+    const sgn = slot < 0 ? -1 : 1
+    const x = slot === 0 ? 0 : sgn * (a === 1 ? 98 : a === 2 ? 170 : 240)
+    const ry = slot === 0 ? 0 : -sgn * (a === 1 ? 45 : a === 2 ? 62 : 72)
+    const s = slot === 0 ? 1 : a === 1 ? 0.9 : a === 2 ? 0.8 : 0.7
+    return {
+      position: 'absolute',
+      top: 0,
+      left: 76,
+      width: 250,
+      height: 360,
+      transformOrigin: 'center center',
+      transform: `translateX(${x}px) rotateY(${ry}deg) scale(${s})`,
+      opacity: a > 2 ? 0 : 1,
+      zIndex: 30 - a * 10,
+      pointerEvents: a > 2 ? 'none' : 'auto',
+      transition: 'transform 420ms cubic-bezier(0.22,1,0.36,1), opacity 420ms ease',
+    }
+  }
+
+  return (
+    <>
+      {/* @ts-ignore — коверфлоу с перспективой + свайп (pan-y = вертикальный скролл страницы остаётся) */}
+      <div
+        onPointerDown={onCDown}
+        onPointerMove={onCMove}
+        onPointerUp={onCUp}
+        onPointerCancel={onCUp}
+        style={{ position: 'absolute', top: 2086, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px', touchAction: 'pan-y' }}
+      >
+        {Array.from({ length: N }).map((_, i) => (
+          // @ts-ignore — карта коверфлоу
+          <div key={i} style={cardStyle(i)}>
             <MirrorGlass />
           </div>
         ))}
       </div>
 
-      {/* «Таблетка»-скраббер под коверфлоу (как у старого плеера): стеклянный трек + бегунок по центру */}
-      {/* @ts-ignore — web-only */}
+      {/* @ts-ignore — слайдер-таблетка: тап/перетаскивание бегунка выбирает карту */}
       <div
+        ref={trackRef}
+        onPointerDown={onSDown}
+        onPointerMove={onSMove}
+        onPointerUp={onSUp}
+        onPointerCancel={onSUp}
         style={{
           position: 'absolute',
           top: 2486,
@@ -677,36 +763,26 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           boxShadow: '0px 8px 22px rgba(2,1,10,0.08)',
           WebkitBackdropFilter: 'blur(37px)',
           backdropFilter: 'blur(37px)',
+          touchAction: 'none',
+          cursor: 'pointer',
         }}
       >
-        {/* бегунок по центру */}
-        {/* @ts-ignore */}
+        {/* @ts-ignore — бегунок */}
         <div
           style={{
             position: 'absolute',
             top: 8,
-            left: '50%',
-            marginLeft: -48,
-            width: 96,
+            left: thumbLeft,
+            width: THUMB,
             height: 40,
             borderRadius: 20,
             backgroundColor: 'rgba(250,250,250,0.9)',
             boxShadow: '0px 2px 8px rgba(2,1,10,0.12)',
+            transition: 'left 320ms cubic-bezier(0.22,1,0.36,1)',
           }}
         />
       </div>
-
-      {/* Аватарка 44×44, top 84 / right 28 */}
-      {/* @ts-ignore — web <img> */}
-      <img
-        src="/avatar.svg"
-        width={44}
-        height={44}
-        alt="avatar"
-        style={{ position: 'absolute', top: 84, right: 28, width: 44, height: 44, zIndex: 2 }}
-      />
-    </YStack>
-    </div>
+    </>
   )
 }
 
