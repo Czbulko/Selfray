@@ -87,7 +87,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     const points = () => {
       const pts = [0]
       const ex = document.getElementById('exploreAnchor')
-      if (ex) pts.push(Math.max(0, Math.round(ex.getBoundingClientRect().top + scroller.scrollTop - 118)))
+      // Explore снапится на 82 от топа (20px от навбара ~62), как Quizzes
+      if (ex) pts.push(Math.max(0, Math.round(ex.getBoundingClientRect().top + scroller.scrollTop - 82)))
       const qz = document.getElementById('quizzesAnchor')
       if (qz) {
         // Quizzes снапится так, чтобы тайтл встал на 82 от топа (заезжает под шапку)
@@ -226,7 +227,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     const measure = () => {
       const ex = document.getElementById('exploreAnchor')
       const qz = document.getElementById('quizzesAnchor')
-      exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 118 : 530
+      exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 82 : 530
       qzSnap = qz ? qz.getBoundingClientRect().top + scroller.scrollTop - 82 : 1145
       exEls = ['exploreAnchor', 'exploreSub', 'exploreDeck']
         .map((id) => document.getElementById(id))
@@ -270,16 +271,19 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
   }, [zoom])
 
   // Флотинг-кнопка чата прилипает к низу экрана (FAB): translateY гонится скроллом,
-  // чтобы её низ всегда был в 40px от нижнего края вьюпорта.
+  // чтобы её низ всегда был в 40px от нижнего края вьюпорта. На первом экране скрыта — появляется к Explore.
   useEffect(() => {
     const scroller = (document.scrollingElement || document.documentElement) as HTMLElement
     let raf = 0
     let naturalTop = 0
+    let exSnap = 0
     const measure = () => {
       const btn = document.getElementById('chatBtn')
       if (!btn) return
       btn.style.transform = 'none'
       naturalTop = btn.getBoundingClientRect().top + scroller.scrollTop
+      const ex = document.getElementById('exploreAnchor')
+      exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 82 : 530
     }
     const apply = () => {
       raf = 0
@@ -289,6 +293,10 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       const target = window.innerHeight - 40 - 56 * z // вьюпорт-top: низ кнопки в 40px от края
       const ty = (target - (naturalTop - scroller.scrollTop)) / z
       btn.style.transform = `translateY(${ty.toFixed(1)}px)`
+      // появление: 0 на герое → 1 к Explore (со второго экрана)
+      const op = exSnap > 0 ? Math.max(0, Math.min(1, scroller.scrollTop / exSnap)) : 1
+      btn.style.opacity = op.toFixed(3)
+      btn.style.pointerEvents = op > 0.5 ? 'auto' : 'none'
     }
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(apply)
