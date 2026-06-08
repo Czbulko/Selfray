@@ -641,9 +641,17 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
               </svg>
             </div>
           </div>
-          {/* Заглушка-картинка: белый квадрат 64×64, 8px от левого края, по центру вертикали (блок 80 → top 8) */}
+          {/* Иллюстрация квиза: квадрат 64×64, 8px от левого края, по центру вертикали (блок 80 → top 8) */}
           {/* @ts-ignore — web-only */}
-          <div style={{ position: 'absolute', left: 8, top: 8, width: 64, height: 64, borderRadius: 12, backgroundColor: '#FFFFFF', zIndex: 3, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', left: 8, top: 8, width: 64, height: 64, borderRadius: 12, backgroundColor: '#FFFFFF', overflow: 'hidden', zIndex: 3, pointerEvents: 'none' }}>
+            {/* @ts-ignore — web <img> */}
+            <img
+              src={`/Quizzes/0${i + 1}.png`}
+              alt=""
+              draggable={false}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          </div>
           {/* Вопрос: 10px от квадрата (72+10=82), правая граница = 40px до стрелки (right 78) */}
           {/* @ts-ignore — web-only */}
           <div style={{ position: 'absolute', left: 82, right: 78, top: 0, bottom: 0, display: 'flex', alignItems: 'center', zIndex: 3, pointerEvents: 'none' }}>
