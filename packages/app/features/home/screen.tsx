@@ -18,6 +18,12 @@ const CARD2_SQUIRCLE_D =
   "M 246 0 c 16.802 0 25.202 0 31.62 3.27 a 30 30 0 0 1 13.11 13.11 c 3.27 6.417 3.27 14.818 3.27 31.62 L 294 340 c 0 16.802 0 25.202 -3.27 31.62 a 30 30 0 0 1 -13.11 13.11 c -6.417 3.27 -14.818 3.27 -31.62 3.27 L 48 388 c -16.802 0 -25.202 0 -31.62 -3.27 a 30 30 0 0 1 -13.11 -13.11 c -3.27 -6.417 -3.27 -14.818 -3.27 -31.62 L 0 48 c 0 -16.802 0 -25.202 3.27 -31.62 a 30 30 0 0 1 13.11 -13.11 c 6.417 -3.27 14.818 -3.27 31.62 -3.27 Z"
 const CARD2_SQUIRCLE = `path('${CARD2_SQUIRCLE_D}')`
 
+// Блок-строка списка Quizzes: тот же iOS-squircle (радиус 30, сглаживание 60%), размер 346×88.
+// На высоте 88 алгоритм figma-squircle поджимает сглаживание, чтобы углы влезли.
+const QUIZ_SQUIRCLE_D =
+  'M 302 0 c 13.0401 0 19.5602 0 24.751 1.9926 a 30 30 0 0 1 17.2564 17.2564 c 1.9926 5.1909 1.9926 11.7109 1.9926 24.751 L 346 44 c 0 13.0401 0 19.5602 -1.9926 24.751 a 30 30 0 0 1 -17.2564 17.2564 c -5.1909 1.9926 -11.7109 1.9926 -24.751 1.9926 L 44 88 c -13.0401 0 -19.5602 0 -24.751 -1.9926 a 30 30 0 0 1 -17.2564 -17.2564 c -1.9926 -5.1909 -1.9926 -11.7109 -1.9926 -24.751 L 0 44 c 0 -13.0401 0 -19.5602 1.9926 -24.751 a 30 30 0 0 1 17.2564 -17.2564 c 5.1909 -1.9926 11.7109 -1.9926 24.751 -1.9926 Z'
+const QUIZ_SQUIRCLE = `path('${QUIZ_SQUIRCLE_D}')`
+
 // Переливания CTA: текст-градиент бежит, белый блик ходит туда-сюда.
 const CTA_KEYFRAMES = `
 @keyframes ctaTextShimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
@@ -485,6 +491,36 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       >
         Quick scans. Uncomfortable accuracy.
       </Text>
+
+      {/* 6 блоков-строк: 24px от сабтайтла (1368+24=1392), высота 88, край 28, между блоками 8 (шаг 96).
+          Скругление/бордер/тень как у карточек: squircle r30, белый градиент-бордер, мягкая тень 8%. */}
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        // @ts-ignore — web-only абсолютное позиционирование строки
+        <div key={i} style={{ position: 'absolute', top: 1392 + i * 96, left: 28, width: 346, height: 88, zIndex: 2 }}>
+          {/* тень на НЕобрезанной обёртке — clip-path иначе срезает свой же drop-shadow */}
+          <div style={{ position: 'absolute', inset: 0, filter: 'drop-shadow(0px 8px 22px rgba(2,1,10,0.08))' }}>
+            <div style={{ position: 'absolute', inset: 0, clipPath: QUIZ_SQUIRCLE }}>
+              <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(255,255,255,0.14)' }} />
+              <svg
+                width={346}
+                height={88}
+                viewBox="0 0 346 88"
+                fill="none"
+                style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+              >
+                <defs>
+                  <linearGradient id="quizBorderGrad" x1="0" y1="0" x2="346" y2="88" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stopColor="rgba(255,255,255,0.9)" />
+                    <stop offset="0.5" stopColor="rgba(255,255,255,0.55)" />
+                    <stop offset="1" stopColor="rgba(255,255,255,0.3)" />
+                  </linearGradient>
+                </defs>
+                <path d={QUIZ_SQUIRCLE_D} stroke="url(#quizBorderGrad)" strokeWidth={2} fill="none" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      ))}
 
       {/* Аватарка 44×44, top 84 / right 28 */}
       {/* @ts-ignore — web <img> */}
