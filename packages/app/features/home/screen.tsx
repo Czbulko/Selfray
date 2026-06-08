@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Text, YStack } from '@my/ui'
 import { RotatingSubtitle } from './RotatingSubtitle'
 import { ExesDeck } from './ExesDeck'
@@ -29,14 +29,20 @@ const CTA_KEYFRAMES = `
 export function HomeScreen(_props: { onLinkPress?: () => void }) {
   const [micPressed, setMicPressed] = useState(false)
   const [micBurst, setMicBurst] = useState(0) // счётчик нажатий — ретриггерит бёрст
+  // Масштаб всего 402-макета под ширину устройства (отступы/тайтл/инпут/карточки — пропорционально)
+  const [zoom, setZoom] = useState(1)
+  useEffect(() => {
+    const apply = () => setZoom(window.innerWidth / DESIGN_WIDTH)
+    apply()
+    window.addEventListener('resize', apply)
+    return () => window.removeEventListener('resize', apply)
+  }, [])
   return (
     <YStack
       position="relative"
-      width="100%"
-      maxWidth={DESIGN_WIDTH}
-      marginHorizontal="auto"
-      // @ts-ignore — поднять весь интерфейс вверх на высоту статус-бара/чёлки (убрать полосу сверху)
-      style={{ marginTop: 'calc(env(safe-area-inset-top, 0px) * -1)' }}
+      width={DESIGN_WIDTH}
+      // @ts-ignore — zoom масштабирует весь 402-макет под ширину устройства; marginTop поднимает под статус-бар
+      style={{ zoom, marginTop: 'calc(env(safe-area-inset-top, 0px) * -1)' }}
     >
       {/* ФОН — длинный PNG во всю ширину, натуральная высота (страница скроллится по нему) */}
       {/* @ts-ignore — web <img> */}
