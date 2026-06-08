@@ -21,12 +21,12 @@ const CARD2_SQUIRCLE = `path('${CARD2_SQUIRCLE_D}')`
 // Блок-строка списка Quizzes: тот же iOS-squircle (радиус 30, сглаживание 60%), размер 346×88.
 // На высоте 88 алгоритм figma-squircle поджимает сглаживание, чтобы углы влезли.
 const QUIZ_SQUIRCLE_D =
-  'M 302 0 c 13.0401 0 19.5602 0 24.751 1.9926 a 30 30 0 0 1 17.2564 17.2564 c 1.9926 5.1909 1.9926 11.7109 1.9926 24.751 L 346 44 c 0 13.0401 0 19.5602 -1.9926 24.751 a 30 30 0 0 1 -17.2564 17.2564 c -5.1909 1.9926 -11.7109 1.9926 -24.751 1.9926 L 44 88 c -13.0401 0 -19.5602 0 -24.751 -1.9926 a 30 30 0 0 1 -17.2564 -17.2564 c -1.9926 -5.1909 -1.9926 -11.7109 -1.9926 -24.751 L 0 44 c 0 -13.0401 0 -19.5602 1.9926 -24.751 a 30 30 0 0 1 17.2564 -17.2564 c 5.1909 -1.9926 11.7109 -1.9926 24.751 -1.9926 Z'
+  'M 306 0 c 9.2997 0 13.9496 0 17.7646 1.0222 a 30 30 0 0 1 21.2132 21.2132 c 1.0222 3.815 1.0222 8.4649 1.0222 17.7646 L 346 40 c 0 9.2997 0 13.9496 -1.0222 17.7646 a 30 30 0 0 1 -21.2132 21.2132 c -3.815 1.0222 -8.4649 1.0222 -17.7646 1.0222 L 40 80 c -9.2997 0 -13.9496 0 -17.7646 -1.0222 a 30 30 0 0 1 -21.2132 -21.2132 c -1.0222 -3.815 -1.0222 -8.4649 -1.0222 -17.7646 L 0 40 c 0 -9.2997 0 -13.9496 1.0222 -17.7646 a 30 30 0 0 1 21.2132 -21.2132 c 3.815 -1.0222 8.4649 -1.0222 17.7646 -1.0222 Z'
 const QUIZ_SQUIRCLE = `path('${QUIZ_SQUIRCLE_D}')`
 
 // Стек-гармошка Quizzes (как уведомления iOS): в сложенном виде каждый блок выше следующего
 // на (96 − QUIZ_FAN) = peek, чуть мельче по scale; при скролле раскрывается до шага 96.
-const QUIZ_FAN = 68 // насколько схлопывается шаг 96 в сложенном виде (peek = 28px)
+const QUIZ_FAN = 60 // насколько схлопывается шаг 88 в сложенном виде (peek = 28px)
 const QUIZ_SCALE_STEP = 0.025 // каждый следующий блок в стопке чуть мельче
 
 // Вопросы в блоках Quizzes (по порядку сверху вниз)
@@ -580,7 +580,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         Quick scans. Uncomfortable accuracy.
       </Text>
 
-      {/* 6 блоков-строк: 24px от сабтайтла (1368+24=1392), высота 88, край 28, между блоками 8 (шаг 96).
+      {/* 6 блоков-строк: 24px от сабтайтла (1368+24=1392), высота 80, край 28, между блоками 8 (шаг 88).
           Скругление/бордер/тень как у карточек: squircle r30, белый градиент-бордер, мягкая тень 8%. */}
       {[0, 1, 2, 3, 4, 5].map((i) => (
         // @ts-ignore — web-only; начальное состояние = СЛОЖЕНО (p=0), раскрытие гонит scroll-эффект
@@ -589,10 +589,10 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           className="quizBlock"
           style={{
             position: 'absolute',
-            top: 1392 + i * 96,
+            top: 1392 + i * 88,
             left: 28,
             width: 346,
-            height: 88,
+            height: 80,
             zIndex: 100 - i, // верхний блок стопки над нижними при наложении
             transformOrigin: 'top center',
             willChange: 'transform',
@@ -615,13 +615,13 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
             <div style={{ position: 'absolute', inset: 0, clipPath: QUIZ_SQUIRCLE, backgroundColor: 'rgba(250,250,250,0.5)' }}>
               <svg
                 width={346}
-                height={88}
-                viewBox="0 0 346 88"
+                height={80}
+                viewBox="0 0 346 80"
                 fill="none"
                 style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
               >
                 <defs>
-                  <linearGradient id="quizBorderGrad" x1="0" y1="0" x2="346" y2="88" gradientUnits="userSpaceOnUse">
+                  <linearGradient id="quizBorderGrad" x1="0" y1="0" x2="346" y2="80" gradientUnits="userSpaceOnUse">
                     <stop offset="0" stopColor="rgba(255,255,255,0.9)" />
                     <stop offset="0.5" stopColor="rgba(255,255,255,0.55)" />
                     <stop offset="1" stopColor="rgba(255,255,255,0.3)" />
@@ -653,7 +653,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="mirrorsAnchor"
         // @ts-ignore — web-only позиционирование (якорь JS-снапа)
-        style={{ position: 'absolute', top: 1996, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 1948, left: 28, right: 28, zIndex: 2 }}
       >
         Mirrors
       </Text>
@@ -668,10 +668,11 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         color="#FFFFFF"
         textAlign="center"
         // @ts-ignore — web-only позиционирование
-        style={{ position: 'absolute', top: 2040, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 1992, left: 28, right: 28, zIndex: 2 }}
       >
         Your inner weather, made visible.
       </Text>
+      {/* (Mirrors-секция сдвинута вверх на 48 вслед за уменьшением блоков Quizzes: 88→80, шаг 96→88) */}
 
       {/* Mirrors — коверфлоу-листалка: свайп по картам ИЛИ слайдер-таблетка листают карты. */}
       <MirrorsCarousel />
@@ -802,7 +803,7 @@ function MirrorsCarousel() {
         onPointerMove={onCMove}
         onPointerUp={onCUp}
         onPointerCancel={onCUp}
-        style={{ position: 'absolute', top: 2086, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px', touchAction: 'pan-y' }}
+        style={{ position: 'absolute', top: 2038, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px', touchAction: 'pan-y' }}
       >
         {Array.from({ length: N }).map((_, i) => (
           // @ts-ignore — карта коверфлоу
@@ -823,7 +824,7 @@ function MirrorsCarousel() {
         onPointerCancel={onSUp}
         style={{
           position: 'absolute',
-          top: 2486,
+          top: 2438,
           left: 76,
           width: 250,
           height: 44,
