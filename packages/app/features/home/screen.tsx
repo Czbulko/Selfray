@@ -643,7 +643,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           </div>
           {/* Иллюстрация квиза: квадрат 64×64, 8px от левого края, по центру вертикали (блок 80 → top 8) */}
           {/* @ts-ignore — web-only */}
-          <div style={{ position: 'absolute', left: 8, top: 8, width: 64, height: 64, borderRadius: 12, backgroundColor: '#FFFFFF', overflow: 'hidden', zIndex: 3, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', left: 8, top: 8, width: 64, height: 64, zIndex: 3, pointerEvents: 'none' }}>
             {/* @ts-ignore — web <img> */}
             <img
               src={`/Quizzes/0${i + 1}.png`}
