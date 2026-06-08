@@ -536,7 +536,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="exploreAnchor"
         // @ts-ignore — web-only позиционирование (якорь JS-снапа)
-        style={{ position: 'absolute', top: 732, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 759, left: 28, right: 28, zIndex: 2 }}
       >
         Explore X-Rays
       </Text>
@@ -551,13 +551,13 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         color="#FFFFFF"
         textAlign="center"
         // @ts-ignore — web-only позиционирование
-        style={{ position: 'absolute', top: 776, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 803, left: 28, right: 28, zIndex: 2 }}
       >
         Pick a lens. See the pattern underneath
       </Text>
 
       {/* Колода карточек X-Ray (стек −0/−5/−10°, свайпом листается) — на месте бывшей карточки */}
-      <ExesDeck top={834} left={54} />
+      <ExesDeck top={861} left={54} />
 
       {/* Секция «Quizzes» — 36px от низа предыдущего блока (каунтер: 834+412+20=1266 → 1302) */}
       <Text
@@ -570,7 +570,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="quizzesAnchor"
         // @ts-ignore — web-only позиционирование (якорь JS-снапа)
-        style={{ position: 'absolute', top: 1302, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 1329, left: 28, right: 28, zIndex: 2 }}
       >
         Quizzes
       </Text>
@@ -585,7 +585,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         color="#FFFFFF"
         textAlign="center"
         // @ts-ignore — web-only позиционирование
-        style={{ position: 'absolute', top: 1346, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 1373, left: 28, right: 28, zIndex: 2 }}
       >
         Quick scans. Uncomfortable accuracy.
       </Text>
@@ -599,7 +599,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           className="quizBlock"
           style={{
             position: 'absolute',
-            top: 1392 + i * 88,
+            top: 1419 + i * 88,
             left: 28,
             width: 346,
             height: 80,
@@ -683,7 +683,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="mirrorsAnchor"
         // @ts-ignore — web-only позиционирование (якорь JS-снапа)
-        style={{ position: 'absolute', top: 1948, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 1975, left: 28, right: 28, zIndex: 2 }}
       >
         Mirrors
       </Text>
@@ -698,7 +698,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         color="#FFFFFF"
         textAlign="center"
         // @ts-ignore — web-only позиционирование
-        style={{ position: 'absolute', top: 1992, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 2019, left: 28, right: 28, zIndex: 2 }}
       >
         Your inner weather, made visible.
       </Text>
@@ -833,7 +833,7 @@ function MirrorsCarousel() {
         onPointerMove={onCMove}
         onPointerUp={onCUp}
         onPointerCancel={onCUp}
-        style={{ position: 'absolute', top: 2038, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px', touchAction: 'pan-y' }}
+        style={{ position: 'absolute', top: 2065, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px', touchAction: 'pan-y' }}
       >
         {Array.from({ length: N }).map((_, i) => (
           // @ts-ignore — карта коверфлоу
@@ -884,7 +884,7 @@ function MirrorsCarousel() {
         onPointerCancel={onSUp}
         style={{
           position: 'absolute',
-          top: 2438,
+          top: 2465,
           left: 76,
           width: 250,
           height: 44,
