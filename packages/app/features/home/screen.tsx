@@ -37,6 +37,62 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     window.addEventListener('resize', apply)
     return () => window.removeEventListener('resize', apply)
   }, [])
+
+  // Скролл-снап: после окончания жеста подскраливаем к ближайшей точке —
+  // верх (герой) ИЛИ секция Explore так, чтобы её тайтл встал на 118px от верха экрана.
+  useEffect(() => {
+    const SNAP_OFFSET = 118
+    let snapping = false
+    let endTimer = 0 as any
+
+    const targets = () => {
+      const el = document.getElementById('exploreAnchor')
+      const pts = [0]
+      if (el) {
+        const exY = el.getBoundingClientRect().top + window.scrollY
+        pts.push(Math.max(0, Math.round(exY - SNAP_OFFSET)))
+      }
+      return pts
+    }
+    const nearest = (y: number, pts: number[]) =>
+      pts.reduce((a, b) => (Math.abs(b - y) < Math.abs(a - y) ? b : a), pts[0])
+
+    const doSnap = () => {
+      if (snapping) return
+      const pts = targets()
+      const y = window.scrollY
+      const t = nearest(y, pts)
+      if (Math.abs(t - y) < 2) return
+      snapping = true
+      window.scrollTo({ top: t, behavior: 'smooth' })
+      const t0 = performance.now()
+      const settle = () => {
+        if (Math.abs(window.scrollY - t) < 2 || performance.now() - t0 > 900) {
+          snapping = false
+          return
+        }
+        requestAnimationFrame(settle)
+      }
+      requestAnimationFrame(settle)
+    }
+
+    const onScroll = () => {
+      if (snapping) return
+      clearTimeout(endTimer)
+      endTimer = setTimeout(doSnap, 90) // ждём паузу в событиях = конец инерции
+    }
+    const onScrollEnd = () => {
+      if (!snapping) doSnap()
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('scrollend', onScrollEnd)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('scrollend', onScrollEnd)
+      clearTimeout(endTimer)
+    }
+  }, [])
+
   return (
     // @ts-ignore — web <div> обёртка: тянем весь интерфейс на 62px вверх под статус-бар
     <div style={{ marginTop: -62 }}>
@@ -53,6 +109,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         alt=""
         style={{ display: 'block', width: '100%', height: 'auto' }}
       />
+
 
       {/* «Selfray» — Lexend Bold, 20/33, белый, top 89 / left 28 */}
       <Text
@@ -345,7 +402,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         letterSpacing={0}
         color="#FFFFFF"
         textAlign="center"
-        // @ts-ignore — web-only позиционирование
+        id="exploreAnchor"
+        // @ts-ignore — web-only позиционирование (якорь JS-снапа)
         style={{ position: 'absolute', top: 732, left: 28, right: 28, zIndex: 2 }}
       >
         Explore X-Rays
