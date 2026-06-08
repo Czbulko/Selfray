@@ -35,6 +35,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       width="100%"
       maxWidth={DESIGN_WIDTH}
       marginHorizontal="auto"
+      // @ts-ignore — поднять весь интерфейс вверх на высоту статус-бара/чёлки (убрать полосу сверху)
+      style={{ marginTop: 'calc(env(safe-area-inset-top, 0px) * -1)' }}
     >
       {/* ФОН — длинный PNG во всю ширину, натуральная высота (страница скроллится по нему) */}
       {/* @ts-ignore — web <img> */}
