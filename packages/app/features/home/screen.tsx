@@ -233,7 +233,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       if (!els.length || exSnap <= 0) return
       const f = Math.max(0, Math.min(1, 1 - scroller.scrollTop / exSnap)) // 1 на герое → 0 у Explore
       for (const el of els) {
-        el.style.filter = f > 0.02 ? `blur(${(4 * f).toFixed(2)}px)` : 'none'
+        el.style.filter = f > 0.02 ? `blur(${(3 * f).toFixed(2)}px)` : 'none'
         el.style.opacity = (1 - 0.3 * f).toFixed(3)
       }
     }
