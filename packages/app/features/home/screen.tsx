@@ -78,153 +78,162 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
   // Снап теперь НАТИВНЫЙ — CSS scroll-snap (см. scroll-snap-align/scroll-margin-top на якорях
   // и scroll-snap-type на html в layout). Браузер делает его на композиторе: плавно и надёжно на iOS.
 
-  // Раскрытие стека Quizzes «гармошкой» (iOS notification-center), завязано на скролл.
-  // ТЕНТ: p=0 на Explore → p=1 на Quizzes (раскрытие на подъезде) → p=0 на Mirrors (схлопывание при свайпе дальше).
-  // Перф: позиции якорей и список блоков считаем ОДИН раз (measure), а в кадре только читаем scrollTop
-  // и пишем transform — без getBoundingClientRect каждый кадр (иначе layout thrash → дёрганье на телефоне).
+  // ВЕРТИКАЛЬНЫЙ ПЕЙДЖЕР (без нативного скролла): свайп вверх/вниз = смена экрана.
+  // Контент двигаем transform-ом (translateY); горизонтальные свайпы (колода/карусель) игнорим,
+  // поэтому страница не трясётся. Эффекты (аккордеон/тизер/FAB) завязаны на virtual pos.
+  const wrapRef = useRef<HTMLDivElement | null>(null)
+  const posRef = useRef(0)
+  const pageRef = useRef(0)
+  const [fabVisible, setFabVisible] = useState(false)
   useEffect(() => {
-    const scroller = (document.scrollingElement || document.documentElement) as HTMLElement
-    let raf = 0
-    let exOff = 0
-    let qc = 0
-    let mirOff = 0
+    let wrap = wrapRef.current
+    let pages: number[] = [0]
+    let exP = 0
+    let qzP = 0
     let blocks: HTMLElement[] = []
-    const measure = () => {
-      const st = scroller.scrollTop
-      const ex = document.getElementById('exploreAnchor')
-      const qz = document.getElementById('quizzesAnchor')
-      const mr = document.getElementById('mirrorsAnchor')
-      blocks = Array.from(document.querySelectorAll<HTMLElement>('.quizBlock'))
-      qc = qz ? qz.getBoundingClientRect().top + st - 118 : 0
-      exOff = ex ? ex.getBoundingClientRect().top + st - 118 : qc - 553
-      mirOff = mr ? mr.getBoundingClientRect().top + st - 118 : qc + 553
-    }
-    const apply = () => {
-      if (!blocks.length) return
-      const st = scroller.scrollTop
-      // только раскрытие на подъезде Explore→Quizzes; дальше остаётся раскрытым (НЕ схлопываем — иначе дыра)
-      const p = qc > exOff ? Math.max(0, Math.min(1, (st - exOff) / (qc - exOff))) : 1
-      for (let i = 0; i < blocks.length; i++) {
-        const ty = -QUIZ_FAN * i * (1 - p)
-        const sc = 1 - QUIZ_SCALE_STEP * i * (1 - p)
-        blocks[i].style.transform = `translateY(${ty.toFixed(2)}px) scale(${sc.toFixed(4)})`
-      }
-    }
-    // непрерывный rAF (плавно на iOS, где scroll-события батчатся): обновляем при изменении scrollTop
-    let last = -1
-    const frame = () => {
-      const st = scroller.scrollTop
-      if (st !== last) {
-        last = st
-        apply()
-      }
-      raf = requestAnimationFrame(frame)
-    }
-    const onResize = () => {
-      measure()
-      last = -1
-    }
-    measure()
-    apply()
-    raf = requestAnimationFrame(frame)
-    window.addEventListener('resize', onResize)
-    return () => {
-      window.removeEventListener('resize', onResize)
-      if (raf) cancelAnimationFrame(raf)
-    }
-  }, [zoom])
-
-  // Тизер: следующая секция выглядывает снизу с blur(3)+opacity 0.7 и становится чёткой при подъезде.
-  // Explore — тизер на первом экране (герой→Explore). Quizzes — тизер на экране Explore (Explore→Quizzes).
-  useEffect(() => {
-    const scroller = (document.scrollingElement || document.documentElement) as HTMLElement
-    let raf = 0
-    let exSnap = 0
-    let qzSnap = 0
     let exEls: HTMLElement[] = []
     let qzEls: HTMLElement[] = []
+
     const measure = () => {
-      const ex = document.getElementById('exploreAnchor')
-      const qz = document.getElementById('quizzesAnchor')
-      exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 50 : 530
-      qzSnap = qz ? qz.getBoundingClientRect().top + scroller.scrollTop - 62 : 1145
+      wrap = wrapRef.current
+      const base = posRef.current
+      const top = (id: string) => {
+        const e = document.getElementById(id)
+        return e ? e.getBoundingClientRect().top + base : null
+      }
+      const exT = top('exploreAnchor')
+      const qzT = top('quizzesAnchor')
+      const mrT = top('mirrorsAnchor')
+      exP = exT != null ? Math.max(0, Math.round(exT - 50)) : 0
+      qzP = qzT != null ? Math.max(0, Math.round(qzT - 62)) : exP
+      const mrP = mrT != null ? Math.max(0, Math.round(mrT - 98)) : qzP
+      pages = [0, exP, qzP, mrP].filter((v, i, a) => i === 0 || v > a[i - 1])
+      blocks = Array.from(document.querySelectorAll<HTMLElement>('.quizBlock'))
       exEls = ['exploreAnchor', 'exploreSub', 'exploreDeck']
         .map((id) => document.getElementById(id))
         .filter(Boolean) as HTMLElement[]
       qzEls = [
         document.getElementById('quizzesAnchor'),
         document.getElementById('quizzesSub'),
-        ...Array.from(document.querySelectorAll<HTMLElement>('.quizBlock')),
+        ...blocks,
       ].filter(Boolean) as HTMLElement[]
     }
+
     const setTeaser = (els: HTMLElement[], f: number) => {
       for (const el of els) {
         el.style.filter = f > 0.02 ? `blur(${(3 * f).toFixed(2)}px)` : 'none'
         el.style.opacity = (1 - 0.3 * f).toFixed(3)
       }
     }
-    const apply = () => {
-      const st = scroller.scrollTop
-      const f1 = exSnap > 0 ? Math.max(0, Math.min(1, 1 - st / exSnap)) : 0 // 1 на герое → 0 у Explore
-      const f2 = qzSnap > exSnap ? Math.max(0, Math.min(1, (qzSnap - st) / (qzSnap - exSnap))) : 0 // 1 у Explore → 0 у Quizzes
+
+    const render = (pos: number) => {
+      if (wrap) wrap.style.transform = `translate3d(0, ${-pos}px, 0)`
+      if (blocks.length && qzP > exP) {
+        const p = Math.max(0, Math.min(1, (pos - exP) / (qzP - exP)))
+        for (let i = 0; i < blocks.length; i++) {
+          const ty = -QUIZ_FAN * i * (1 - p)
+          const sc = 1 - QUIZ_SCALE_STEP * i * (1 - p)
+          blocks[i].style.transform = `translateY(${ty.toFixed(2)}px) scale(${sc.toFixed(4)})`
+        }
+      }
+      const f1 = exP > 0 ? Math.max(0, Math.min(1, 1 - pos / exP)) : 0
+      const f2 = qzP > exP ? Math.max(0, Math.min(1, (qzP - pos) / (qzP - exP))) : 0
       setTeaser(exEls, f1)
       setTeaser(qzEls, f2)
+      const show = exP > 0 && pos > exP * 0.6
+      setFabVisible((v) => (v === show ? v : show))
     }
-    // непрерывный rAF (плавно на iOS): обновляем при изменении scrollTop
-    let last = -1
-    const frame = () => {
-      const st = scroller.scrollTop
-      if (st !== last) {
-        last = st
-        apply()
+
+    let raf = 0
+    const animate = (target: number) => {
+      if (raf) cancelAnimationFrame(raf)
+      const start = posRef.current
+      const t0 = performance.now()
+      const dur = 460
+      const ease = (t: number) => 1 - Math.pow(1 - t, 3)
+      const step = (now: number) => {
+        const p = Math.min(1, (now - t0) / dur)
+        posRef.current = start + (target - start) * ease(p)
+        render(posRef.current)
+        if (p < 1) {
+          raf = requestAnimationFrame(step)
+        } else {
+          posRef.current = target
+          render(target)
+          raf = 0
+        }
       }
-      raf = requestAnimationFrame(frame)
+      raf = requestAnimationFrame(step)
+    }
+    const goDir = (dir: number) => {
+      const np = Math.max(0, Math.min(pages.length - 1, pageRef.current + dir))
+      pageRef.current = np
+      animate(pages[np])
+    }
+
+    let sx = 0
+    let sy = 0
+    let decided: 'none' | 'v' | 'h' = 'none'
+    let active = false
+    const onTS = (e: TouchEvent) => {
+      const t = e.touches[0]
+      sx = t.clientX
+      sy = t.clientY
+      decided = 'none'
+      active = true
+    }
+    const onTM = (e: TouchEvent) => {
+      if (!active || decided !== 'none') return
+      const t = e.touches[0]
+      const dx = t.clientX - sx
+      const dy = t.clientY - sy
+      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) decided = Math.abs(dy) > Math.abs(dx) ? 'v' : 'h'
+    }
+    const onTE = (e: TouchEvent) => {
+      if (!active) return
+      active = false
+      if (decided !== 'v') return
+      const dy = e.changedTouches[0].clientY - sy
+      if (Math.abs(dy) < 40) return
+      goDir(dy < 0 ? 1 : -1)
+    }
+    let wheelLock = false
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) < 8 || wheelLock) return
+      wheelLock = true
+      setTimeout(() => {
+        wheelLock = false
+      }, 520)
+      goDir(e.deltaY > 0 ? 1 : -1)
     }
     const onResize = () => {
       measure()
-      last = -1
+      posRef.current = pages[Math.min(pageRef.current, pages.length - 1)]
+      render(posRef.current)
     }
+
     measure()
-    apply()
-    raf = requestAnimationFrame(frame)
+    render(posRef.current)
+    window.addEventListener('touchstart', onTS, { passive: true })
+    window.addEventListener('touchmove', onTM, { passive: true })
+    window.addEventListener('touchend', onTE, { passive: true })
+    window.addEventListener('wheel', onWheel, { passive: true })
     window.addEventListener('resize', onResize)
     return () => {
+      window.removeEventListener('touchstart', onTS)
+      window.removeEventListener('touchmove', onTM)
+      window.removeEventListener('touchend', onTE)
+      window.removeEventListener('wheel', onWheel)
       window.removeEventListener('resize', onResize)
       if (raf) cancelAnimationFrame(raf)
     }
   }, [zoom])
 
-  // FAB — НАСТОЯЩИЙ position:fixed (вне зум-контента, поэтому не лагает за скроллом).
-  // Появление/выезд снизу — CSS-переходом по булеву флагу: скрыт на первом экране,
-  // выезжает снизу, когда доскроллил ко второму (Explore).
-  const [fabVisible, setFabVisible] = useState(false)
-  useEffect(() => {
-    let exSnap = 0
-    const measure = () => {
-      const ex = document.getElementById('exploreAnchor')
-      exSnap = ex ? ex.getBoundingClientRect().top + window.scrollY - 50 : 530
-    }
-    const onScroll = () => {
-      const show = exSnap > 0 && window.scrollY > exSnap * 0.6
-      setFabVisible((v) => (v === show ? v : show))
-    }
-    measure()
-    onScroll()
-    const onResize = () => {
-      measure()
-      onScroll()
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onResize)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onResize)
-    }
-  }, [zoom])
-
   return (
-    // @ts-ignore — web <div> обёртка: тянем весь интерфейс на 62px вверх под статус-бар
-    <div style={{ marginTop: -62 }}>
+    // @ts-ignore — внешний статичный контейнер (FAB вне translateY-трека, иначе fixed сломается)
+    <div>
+    {/* @ts-ignore — ТРЕК пейджера: его двигаем translateY; внутри -62 сдвиг под статус-бар */}
+    <div ref={wrapRef} style={{ marginTop: -62 }}>
     <YStack
       position="relative"
       width={DESIGN_WIDTH}
@@ -731,9 +740,10 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         style={{ position: 'absolute', top: 84, right: 28, width: 44, height: 44, zIndex: 2 }}
       />
     </YStack>
+    </div>
 
-    {/* Флотинг-кнопка чата — position:fixed (margin обёртки не ломает fixed; вне зума → не лагает за скроллом).
-        Скрыта на первом экране; когда доскроллил ко второму — выезжает снизу (CSS-переход). */}
+    {/* Флотинг-кнопка чата — position:fixed (вне translateY-трека). Скрыта на первом экране;
+        когда доскроллил ко второму — выезжает снизу (CSS-переход). */}
     {/* @ts-ignore — web-only */}
     <div
       style={{

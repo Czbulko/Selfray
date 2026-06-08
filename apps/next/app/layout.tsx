@@ -44,10 +44,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               // фон под статус-баром/чёлкой и по краям = ТОЧНЫЙ цвет верхнего пикселя градиента (#928EB1),
               // иначе виден светлый шов над градиентом
               'html,body{background:#928EB1 !important;}' +
-              // свайп карты вбок не должен таскать страницу: режем горизонтальный скролл/оверскролл
-              'html,body{overflow-x:hidden;overscroll-behavior-x:none;}' +
-              // НАТИВНЫЙ снап секций по вертикали (плавно/надёжно на iOS). Точки — на якорях (scroll-snap-align).
-              'html{scroll-snap-type:y proximity;}',
+              // ПЕЙДЖЕР: нативный скролл выключен — экраны переключаются свайпом (transform).
+              // Так горизонтальные свайпы колоды/карусели не таскают страницу по вертикали.
+              'html,body{height:100%;overflow:hidden;overscroll-behavior:none;}',
           }}
         />
       </head>
