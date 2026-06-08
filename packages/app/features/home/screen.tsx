@@ -81,7 +81,6 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
   const pageRef = useRef(0)
   useEffect(() => {
     const scroller = (document.scrollingElement || document.documentElement) as HTMLElement
-    const htmlEl = document.documentElement
     let animating = false
 
     const points = () => {
@@ -104,8 +103,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       const start = scroller.scrollTop
       if (Math.abs(target - start) < 2) return
       animating = true
-      const prev = htmlEl.style.overflow
-      htmlEl.style.overflow = 'hidden' // мгновенно убивает инерцию/резину iOS
+      // НЕ трогаем overflow: на iOS Safari overflow:hidden ломает программный scrollTop (долёт срывается).
+      // Инерция гасится тем, что каждый кадр жёстко выставляем scrollTop.
       const dur = 480
       const t0 = performance.now()
       const step = (now: number) => {
@@ -113,7 +112,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         scroller.scrollTop = Math.round(start + (target - start) * ease(p))
         if (p < 1) requestAnimationFrame(step)
         else {
-          htmlEl.style.overflow = prev
+          scroller.scrollTop = target // жёстко добиваем до цели
           animating = false
         }
       }
