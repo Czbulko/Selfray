@@ -631,9 +631,12 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
               </svg>
             </div>
           </div>
-          {/* Вопрос: лево 82 от экрана (внутри блока 54), правая граница = 40px до стрелки (стрелка левым краем на 38 → right 78) */}
+          {/* Заглушка-картинка: белый квадрат 64×64, 8px от левого края, по центру вертикали (блок 80 → top 8) */}
           {/* @ts-ignore — web-only */}
-          <div style={{ position: 'absolute', left: 54, right: 78, top: 0, bottom: 0, display: 'flex', alignItems: 'center', zIndex: 3, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', left: 8, top: 8, width: 64, height: 64, borderRadius: 12, backgroundColor: '#FFFFFF', zIndex: 3, pointerEvents: 'none' }} />
+          {/* Вопрос: 10px от квадрата (72+10=82), правая граница = 40px до стрелки (right 78) */}
+          {/* @ts-ignore — web-only */}
+          <div style={{ position: 'absolute', left: 82, right: 78, top: 0, bottom: 0, display: 'flex', alignItems: 'center', zIndex: 3, pointerEvents: 'none' }}>
             <Text fontFamily="$body" fontWeight="500" fontSize={17} lineHeight={22} letterSpacing={0} color="#41474F">
               {QUIZ_QUESTIONS[i]}
             </Text>
