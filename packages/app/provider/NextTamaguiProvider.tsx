@@ -38,9 +38,9 @@ export const NextTamaguiProvider = ({ children }: { children: ReactNode }) => {
 
         <style
           dangerouslySetInnerHTML={{
-            __html: config.getCSS({
-              exclude: process.env.NODE_ENV === 'production' ? 'design-system' : null,
-            }),
+            // NB: НЕ исключаем 'design-system' в проде — иначе шрифты/веса (Lexend/Hanken)
+            // не попадают в CSS (статичный public/tamagui.css сгенерён со старым Inter).
+            __html: config.getCSS(),
           }}
         />
 

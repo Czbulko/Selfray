@@ -35,7 +35,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html:
               'html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}' +
               // фон под статус-баром/чёлкой и по краям = цвет верха градиента (иначе проступает белый body)
-              'html,body{background:#B1AFD0 !important;}',
+              'html,body{background:#B1AFD0 !important;}' +
+              // свайп карты вбок не должен таскать страницу: режем горизонтальный скролл/оверскролл
+              'html,body{overflow-x:hidden;overscroll-behavior-x:none;}',
           }}
         />
       </head>
