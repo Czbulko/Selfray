@@ -289,13 +289,13 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       const btn = document.getElementById('chatBtn')
       if (!btn) return
       const z = window.innerWidth / DESIGN_WIDTH
-      const target = window.innerHeight - 40 - 56 * z // вьюпорт-top: низ кнопки в 40px от края
+      // прогресс появления: 0 на герое → 1 к Explore. Кнопка ВЫЕЗЖАЕТ снизу (спрятана ниже края → на место).
+      const progress = exSnap > 0 ? Math.max(0, Math.min(1, scroller.scrollTop / exSnap)) : 1
+      const ENTRANCE = 120 // на сколько ниже стартует (за нижним краем экрана)
+      const target = window.innerHeight - 40 - 56 * z + (1 - progress) * ENTRANCE // низ кнопки в 40px от края
       const ty = (target - (naturalTop - scroller.scrollTop)) / z
       btn.style.transform = `translateY(${ty.toFixed(1)}px)`
-      // появление: 0 на герое → 1 к Explore (со второго экрана)
-      const op = exSnap > 0 ? Math.max(0, Math.min(1, scroller.scrollTop / exSnap)) : 1
-      btn.style.opacity = op.toFixed(3)
-      btn.style.pointerEvents = op > 0.5 ? 'auto' : 'none'
+      btn.style.pointerEvents = progress > 0.5 ? 'auto' : 'none'
     }
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(apply)
