@@ -651,8 +651,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
 // Коверфлоу-листалка Mirrors: центр + по 2 карты с каждой стороны (перспектива).
 // Листается свайпом по картам И слайдером-таблеткой снизу (бегунок = текущая карта).
 function MirrorsCarousel() {
-  const N = 5
-  const [idx, setIdx] = useState(2) // старт по центру (видны 2+1+2)
+  const N = 7
+  const [idx, setIdx] = useState(0) // дефолт — первая карта по центру
   const clamp = (v: number) => Math.max(0, Math.min(N - 1, v))
   const go = (d: number) => setIdx((v) => clamp(v + d))
 
@@ -677,7 +677,7 @@ function MirrorsCarousel() {
   // слайдер-таблетка
   const TRACK = 250
   const THUMB = 96
-  const PAD = 4
+  const PAD = 0 // бегунок встык к краям пилюли
   const travel = TRACK - THUMB - PAD * 2
   const thumbLeft = PAD + (N > 1 ? (idx / (N - 1)) * travel : 0)
   const trackRef = useRef<HTMLDivElement>(null)
@@ -755,29 +755,27 @@ function MirrorsCarousel() {
           top: 2486,
           left: 76,
           width: 250,
-          height: 56,
+          height: 44,
           zIndex: 31,
-          borderRadius: 28,
+          borderRadius: 22,
           backgroundColor: 'rgba(250,250,250,0.4)',
           border: '1.5px solid rgba(255,255,255,0.55)',
-          boxShadow: '0px 8px 22px rgba(2,1,10,0.08)',
           WebkitBackdropFilter: 'blur(37px)',
           backdropFilter: 'blur(37px)',
           touchAction: 'none',
           cursor: 'pointer',
         }}
       >
-        {/* @ts-ignore — бегунок */}
+        {/* @ts-ignore — бегунок: встык по высоте (44) и к краям */}
         <div
           style={{
             position: 'absolute',
-            top: 8,
+            top: 0,
             left: thumbLeft,
             width: THUMB,
-            height: 40,
-            borderRadius: 20,
+            height: 44,
+            borderRadius: 22,
             backgroundColor: 'rgba(250,250,250,0.9)',
-            boxShadow: '0px 2px 8px rgba(2,1,10,0.12)',
             transition: 'left 320ms cubic-bezier(0.22,1,0.36,1)',
           }}
         />
