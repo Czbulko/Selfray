@@ -87,14 +87,14 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       const pts = [0]
       const ex = document.getElementById('exploreAnchor')
       // Explore снапится на 70 от топа (выше, ближе к навбару ~62)
-      if (ex) pts.push(Math.max(0, Math.round(ex.getBoundingClientRect().top + scroller.scrollTop - 70)))
+      if (ex) pts.push(Math.max(0, Math.round(ex.getBoundingClientRect().top + scroller.scrollTop - 50)))
       const qz = document.getElementById('quizzesAnchor')
       if (qz) {
         // Quizzes снапится так, чтобы тайтл встал на 82 от топа (заезжает под шапку)
-        pts.push(Math.max(0, Math.round(qz.getBoundingClientRect().top + scroller.scrollTop - 82)))
+        pts.push(Math.max(0, Math.round(qz.getBoundingClientRect().top + scroller.scrollTop - 62)))
       }
       const mr = document.getElementById('mirrorsAnchor')
-      if (mr) pts.push(Math.max(0, Math.round(mr.getBoundingClientRect().top + scroller.scrollTop - 118)))
+      if (mr) pts.push(Math.max(0, Math.round(mr.getBoundingClientRect().top + scroller.scrollTop - 98)))
       return pts.sort((a, b) => a - b)
     }
 
@@ -230,8 +230,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     const measure = () => {
       const ex = document.getElementById('exploreAnchor')
       const qz = document.getElementById('quizzesAnchor')
-      exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 70 : 530
-      qzSnap = qz ? qz.getBoundingClientRect().top + scroller.scrollTop - 82 : 1145
+      exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 50 : 530
+      qzSnap = qz ? qz.getBoundingClientRect().top + scroller.scrollTop - 62 : 1145
       exEls = ['exploreAnchor', 'exploreSub', 'exploreDeck']
         .map((id) => document.getElementById(id))
         .filter(Boolean) as HTMLElement[]
@@ -286,7 +286,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       btn.style.transform = 'none'
       naturalTop = btn.getBoundingClientRect().top + scroller.scrollTop
       const ex = document.getElementById('exploreAnchor')
-      exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 70 : 530
+      exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 50 : 530
     }
     const apply = () => {
       raf = 0
@@ -338,7 +338,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       />
       {/* спейсер: продлевает прокрутку ниже PNG (на фоне YStack-градиента), чтобы Mirrors доезжал до снапа */}
       {/* @ts-ignore — web in-flow spacer */}
-      <div style={{ width: '100%', height: 280 }} />
+      <div style={{ width: '100%', height: 330 }} />
 
 
       {/* «Selfray» — Lexend Bold, 20/33, белый, top 89 / left 28 */}
