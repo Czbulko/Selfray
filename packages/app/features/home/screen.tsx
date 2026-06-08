@@ -269,6 +269,45 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     }
   }, [zoom])
 
+  // Флотинг-кнопка чата прилипает к низу экрана (FAB): translateY гонится скроллом,
+  // чтобы её низ всегда был в 40px от нижнего края вьюпорта.
+  useEffect(() => {
+    const scroller = (document.scrollingElement || document.documentElement) as HTMLElement
+    let raf = 0
+    let naturalTop = 0
+    const measure = () => {
+      const btn = document.getElementById('chatBtn')
+      if (!btn) return
+      btn.style.transform = 'none'
+      naturalTop = btn.getBoundingClientRect().top + scroller.scrollTop
+    }
+    const apply = () => {
+      raf = 0
+      const btn = document.getElementById('chatBtn')
+      if (!btn) return
+      const z = window.innerWidth / DESIGN_WIDTH
+      const target = window.innerHeight - 40 - 56 * z // вьюпорт-top: низ кнопки в 40px от края
+      const ty = (target - (naturalTop - scroller.scrollTop)) / z
+      btn.style.transform = `translateY(${ty.toFixed(1)}px)`
+    }
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(apply)
+    }
+    const onResize = () => {
+      measure()
+      apply()
+    }
+    measure()
+    apply()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [zoom])
+
   return (
     // @ts-ignore — web <div> обёртка: тянем весь интерфейс на 62px вверх под статус-бар
     <div style={{ marginTop: -62 }}>
@@ -288,7 +327,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       />
       {/* спейсер: продлевает прокрутку ниже PNG (на фоне YStack-градиента), чтобы Mirrors доезжал до снапа */}
       {/* @ts-ignore — web in-flow spacer */}
-      <div style={{ width: '100%', height: 285 }} />
+      <div style={{ width: '100%', height: 195 }} />
 
 
       {/* «Selfray» — Lexend Bold, 20/33, белый, top 89 / left 28 */}
@@ -615,22 +654,24 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       {/* Колода карточек X-Ray (стек −0/−5/−10°, свайпом листается) — на месте бывшей карточки */}
       <ExesDeck top={861} left={54} id="exploreDeck" />
 
-      {/* Флотинг-кнопка чата: 115×56, скруглённая, стекло; 30px от низа каунтера (1293) → top 1323, по центру */}
+      {/* Флотинг-кнопка чата: 115×56, скруглённая, стекло; ПРИЛИПАЕТ к низу экрана (скролл-эффект) */}
       {/* @ts-ignore — web-only */}
       <div
+        id="chatBtn"
         style={{
           position: 'absolute',
           top: 1323,
           left: 143.5,
           width: 115,
           height: 56,
-          zIndex: 4,
+          zIndex: 200,
           borderRadius: 20,
           backgroundColor: 'rgba(250,250,250,0.5)',
           border: '1.5px solid rgba(255,255,255,0.6)',
           boxShadow: '0px 10px 28px rgba(2,1,10,0.12)',
           WebkitBackdropFilter: 'blur(37px)',
           backdropFilter: 'blur(37px)',
+          willChange: 'transform',
         }}
       />
 
@@ -645,7 +686,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="quizzesAnchor"
         // @ts-ignore — web-only позиционирование (якорь JS-снапа)
-        style={{ position: 'absolute', top: 1415, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 1329, left: 28, right: 28, zIndex: 2 }}
       >
         Quizzes
       </Text>
@@ -661,7 +702,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="quizzesSub"
         // @ts-ignore — web-only позиционирование
-        style={{ position: 'absolute', top: 1459, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 1373, left: 28, right: 28, zIndex: 2 }}
       >
         Quick scans. Uncomfortable accuracy.
       </Text>
@@ -675,7 +716,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           className="quizBlock"
           style={{
             position: 'absolute',
-            top: 1505 + i * 88,
+            top: 1419 + i * 88,
             left: 28,
             width: 346,
             height: 80,
@@ -759,7 +800,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="mirrorsAnchor"
         // @ts-ignore — web-only позиционирование (якорь JS-снапа)
-        style={{ position: 'absolute', top: 2061, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 1975, left: 28, right: 28, zIndex: 2 }}
       >
         Mirrors
       </Text>
@@ -774,7 +815,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         color="#FFFFFF"
         textAlign="center"
         // @ts-ignore — web-only позиционирование
-        style={{ position: 'absolute', top: 2105, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 2019, left: 28, right: 28, zIndex: 2 }}
       >
         Your inner weather, made visible.
       </Text>
@@ -909,7 +950,7 @@ function MirrorsCarousel() {
         onPointerMove={onCMove}
         onPointerUp={onCUp}
         onPointerCancel={onCUp}
-        style={{ position: 'absolute', top: 2151, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px', touchAction: 'pan-y' }}
+        style={{ position: 'absolute', top: 2065, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px', touchAction: 'pan-y' }}
       >
         {Array.from({ length: N }).map((_, i) => (
           // @ts-ignore — карта коверфлоу
@@ -960,7 +1001,7 @@ function MirrorsCarousel() {
         onPointerCancel={onSUp}
         style={{
           position: 'absolute',
-          top: 2551,
+          top: 2465,
           left: 76,
           width: 250,
           height: 44,
