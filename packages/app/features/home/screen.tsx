@@ -64,9 +64,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       if (ex) pts.push(Math.max(0, Math.round(ex.getBoundingClientRect().top + scroller.scrollTop - 118)))
       const qz = document.getElementById('quizzesAnchor')
       if (qz) {
-        const qc = Math.max(0, Math.round(qz.getBoundingClientRect().top + scroller.scrollTop - 118))
-        pts.push(qc) // Quizzes сложено (стопка)
-        pts.push(qc + Math.round(5 * QUIZ_FAN * (window.innerWidth / 402))) // Quizzes раскрыто (гармошка)
+        // одна точка: тайтл Quizzes на 118 — блоки приезжают сюда УЖЕ раскрытыми (разлёт на подъезде)
+        pts.push(Math.max(0, Math.round(qz.getBoundingClientRect().top + scroller.scrollTop - 118)))
       }
       return pts.sort((a, b) => a - b)
     }
@@ -137,19 +136,22 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
   }, [zoom])
 
   // Раскрытие стека Quizzes «гармошкой», завязанное на скролл (iOS notification-center).
-  // p=0 у точки «сложено» (Qc) → p=1 через 5·QUIZ_FAN скролла. translateY/scale в дизайн-px (зум сам масштабирует).
+  // p=0 на Explore → p=1 на Quizzes (разлёт на подъезде). translateY/scale в дизайн-px (зум сам масштабирует).
   useEffect(() => {
     const scroller = (document.scrollingElement || document.documentElement) as HTMLElement
     let raf = 0
     const update = () => {
       raf = 0
       const qz = document.getElementById('quizzesAnchor')
+      const ex = document.getElementById('exploreAnchor')
       const blocks = document.querySelectorAll<HTMLElement>('.quizBlock')
       if (!qz || !blocks.length) return
-      const z = window.innerWidth / 402
-      const qc = qz.getBoundingClientRect().top + scroller.scrollTop - 118
-      const expand = 5 * QUIZ_FAN * z // дистанция скролла (real px) для полного раскрытия
-      const p = Math.max(0, Math.min(1, (scroller.scrollTop - qc) / expand))
+      const st = scroller.scrollTop
+      // разлёт завязан на ПОДЪЕЗД: p=0 на Explore (530) → p=1 на Quizzes (1083),
+      // так блоки прилетают уже раскрытыми за тот же свайп, без второго свайпа
+      const qc = qz.getBoundingClientRect().top + st - 118
+      const exOff = ex ? ex.getBoundingClientRect().top + st - 118 : qc - 553
+      const p = Math.max(0, Math.min(1, (st - exOff) / Math.max(1, qc - exOff)))
       blocks.forEach((el, i) => {
         const ty = -QUIZ_FAN * i * (1 - p)
         const sc = 1 - QUIZ_SCALE_STEP * i * (1 - p)
