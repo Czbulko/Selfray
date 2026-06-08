@@ -334,7 +334,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       />
       {/* спейсер: продлевает прокрутку ниже PNG (на фоне YStack-градиента), чтобы Mirrors доезжал до снапа */}
       {/* @ts-ignore — web in-flow spacer */}
-      <div style={{ width: '100%', height: 195 }} />
+      <div style={{ width: '100%', height: 280 }} />
 
 
       {/* «Selfray» — Lexend Bold, 20/33, белый, top 89 / left 28 */}
@@ -693,7 +693,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="quizzesAnchor"
         // @ts-ignore — web-only позиционирование (якорь JS-снапа)
-        style={{ position: 'absolute', top: 1329, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 1408, left: 28, right: 28, zIndex: 2 }}
       >
         Quizzes
       </Text>
@@ -709,7 +709,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="quizzesSub"
         // @ts-ignore — web-only позиционирование
-        style={{ position: 'absolute', top: 1373, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 1452, left: 28, right: 28, zIndex: 2 }}
       >
         Quick scans. Uncomfortable accuracy.
       </Text>
@@ -723,7 +723,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           className="quizBlock"
           style={{
             position: 'absolute',
-            top: 1419 + i * 88,
+            top: 1498 + i * 88,
             left: 28,
             width: 346,
             height: 80,
@@ -807,7 +807,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="mirrorsAnchor"
         // @ts-ignore — web-only позиционирование (якорь JS-снапа)
-        style={{ position: 'absolute', top: 1975, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 2054, left: 28, right: 28, zIndex: 2 }}
       >
         Mirrors
       </Text>
@@ -822,7 +822,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         color="#FFFFFF"
         textAlign="center"
         // @ts-ignore — web-only позиционирование
-        style={{ position: 'absolute', top: 2019, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 2098, left: 28, right: 28, zIndex: 2 }}
       >
         Your inner weather, made visible.
       </Text>
@@ -957,7 +957,7 @@ function MirrorsCarousel() {
         onPointerMove={onCMove}
         onPointerUp={onCUp}
         onPointerCancel={onCUp}
-        style={{ position: 'absolute', top: 2065, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px', touchAction: 'pan-y' }}
+        style={{ position: 'absolute', top: 2144, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px', touchAction: 'pan-y' }}
       >
         {Array.from({ length: N }).map((_, i) => (
           // @ts-ignore — карта коверфлоу
@@ -1008,7 +1008,7 @@ function MirrorsCarousel() {
         onPointerCancel={onSUp}
         style={{
           position: 'absolute',
-          top: 2465,
+          top: 2544,
           left: 76,
           width: 250,
           height: 44,
