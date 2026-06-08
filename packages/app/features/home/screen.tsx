@@ -86,8 +86,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     const points = () => {
       const pts = [0]
       const ex = document.getElementById('exploreAnchor')
-      // Explore снапится на 82 от топа (20px от навбара ~62), как Quizzes
-      if (ex) pts.push(Math.max(0, Math.round(ex.getBoundingClientRect().top + scroller.scrollTop - 82)))
+      // Explore снапится на 70 от топа (выше, ближе к навбару ~62)
+      if (ex) pts.push(Math.max(0, Math.round(ex.getBoundingClientRect().top + scroller.scrollTop - 70)))
       const qz = document.getElementById('quizzesAnchor')
       if (qz) {
         // Quizzes снапится так, чтобы тайтл встал на 82 от топа (заезжает под шапку)
@@ -114,6 +114,14 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         else {
           scroller.scrollTop = target // жёстко добиваем до цели
           animating = false
+          // ДОЖИМ против остаточной инерции iOS: ещё несколько раз держим цель (пока юзер не тронул)
+          let n = 0
+          const hold = () => {
+            if (active) return
+            scroller.scrollTop = target
+            if (++n < 6) setTimeout(hold, 55)
+          }
+          setTimeout(hold, 55)
         }
       }
       requestAnimationFrame(step)
@@ -226,7 +234,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     const measure = () => {
       const ex = document.getElementById('exploreAnchor')
       const qz = document.getElementById('quizzesAnchor')
-      exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 82 : 530
+      exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 70 : 530
       qzSnap = qz ? qz.getBoundingClientRect().top + scroller.scrollTop - 82 : 1145
       exEls = ['exploreAnchor', 'exploreSub', 'exploreDeck']
         .map((id) => document.getElementById(id))
@@ -282,16 +290,16 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       btn.style.transform = 'none'
       naturalTop = btn.getBoundingClientRect().top + scroller.scrollTop
       const ex = document.getElementById('exploreAnchor')
-      exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 82 : 530
+      exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 70 : 530
     }
     const apply = () => {
       raf = 0
       const btn = document.getElementById('chatBtn')
       if (!btn) return
       const z = window.innerWidth / DESIGN_WIDTH
-      // прогресс появления: 0 на герое → 1 к Explore. Кнопка ВЫЕЗЖАЕТ снизу (спрятана ниже края → на место).
-      const progress = exSnap > 0 ? Math.max(0, Math.min(1, scroller.scrollTop / exSnap)) : 1
-      const ENTRANCE = 120 // на сколько ниже стартует (за нижним краем экрана)
+      // прогресс появления: спрятана до половины пути к Explore, потом выезжает снизу, на месте — у Explore.
+      const progress = exSnap > 0 ? Math.max(0, Math.min(1, (scroller.scrollTop - exSnap * 0.5) / (exSnap * 0.5))) : 1
+      const ENTRANCE = 170 // глубоко за нижним краем (хватает и на высоких экранах)
       const target = window.innerHeight - 40 - 56 * z + (1 - progress) * ENTRANCE // низ кнопки в 40px от края
       const ty = (target - (naturalTop - scroller.scrollTop)) / z
       btn.style.transform = `translateY(${ty.toFixed(1)}px)`
