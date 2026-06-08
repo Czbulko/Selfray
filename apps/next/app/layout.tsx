@@ -12,7 +12,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#B1AFD0',
+  themeColor: '#928EB1',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -34,8 +34,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{
             __html:
               'html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}' +
-              // фон под статус-баром/чёлкой и по краям = цвет верха градиента (иначе проступает белый body)
-              'html,body{background:#B1AFD0 !important;}' +
+              // фон под статус-баром/чёлкой и по краям = ТОЧНЫЙ цвет верхнего пикселя градиента (#928EB1),
+              // иначе виден светлый шов над градиентом
+              'html,body{background:#928EB1 !important;}' +
               // свайп карты вбок не должен таскать страницу: режем горизонтальный скролл/оверскролл
               'html,body{overflow-x:hidden;overscroll-behavior-x:none;}',
           }}

@@ -38,9 +38,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     return () => window.removeEventListener('resize', apply)
   }, [])
   return (
-    // Поднимаем весь интерфейс вверх на 62px (фон лезет под часы/батарею). Сдвиг ВНЕ zoom = ровно 62px.
-    // @ts-ignore — web <div>
-    <div style={{ marginTop: -62 }}>
+    // @ts-ignore — web <div> обёртка (сдвиг 0; полоса сверху решена цвет-матчем статус-бара)
+    <div style={{ marginTop: 0 }}>
     <YStack
       position="relative"
       width={DESIGN_WIDTH}
