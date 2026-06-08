@@ -194,55 +194,31 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     }
   }, [zoom])
 
-  // Флотинг-кнопка чата прилипает к низу экрана (FAB): translateY гонится скроллом,
-  // чтобы её низ всегда был в 40px от нижнего края вьюпорта. На первом экране скрыта — появляется к Explore.
+  // FAB — НАСТОЯЩИЙ position:fixed (вне зум-контента, поэтому не лагает за скроллом).
+  // Появление/выезд снизу — CSS-переходом по булеву флагу: скрыт на первом экране,
+  // выезжает снизу, когда доскроллил ко второму (Explore).
+  const [fabVisible, setFabVisible] = useState(false)
   useEffect(() => {
-    const scroller = (document.scrollingElement || document.documentElement) as HTMLElement
-    let raf = 0
-    let naturalTop = 0
     let exSnap = 0
     const measure = () => {
-      const btn = document.getElementById('chatBtn')
-      if (!btn) return
-      btn.style.transform = 'none'
-      naturalTop = btn.getBoundingClientRect().top + scroller.scrollTop
       const ex = document.getElementById('exploreAnchor')
-      exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 50 : 530
+      exSnap = ex ? ex.getBoundingClientRect().top + window.scrollY - 50 : 530
     }
-    const apply = () => {
-      const btn = document.getElementById('chatBtn')
-      if (!btn) return
-      const z = window.innerWidth / DESIGN_WIDTH
-      // прогресс появления: спрятана до половины пути к Explore, потом выезжает снизу, на месте — у Explore.
-      const progress = exSnap > 0 ? Math.max(0, Math.min(1, (scroller.scrollTop - exSnap * 0.5) / (exSnap * 0.5))) : 1
-      const ENTRANCE = 170 // глубоко за нижним краем (хватает и на высоких экранах)
-      const target = window.innerHeight - 40 - 56 * z + (1 - progress) * ENTRANCE // низ кнопки в 40px от края
-      const ty = (target - (naturalTop - scroller.scrollTop)) / z
-      btn.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0)`
-      btn.style.pointerEvents = progress > 0.5 ? 'auto' : 'none'
-    }
-    // Непрерывный rAF-цикл: на iOS scroll-события во время инерции батчатся (рывки),
-    // а чтение scrollTop каждый кадр трекает скролл плавно. Обновляем только при изменении.
-    let last = -1
-    const frame = () => {
-      const st = scroller.scrollTop
-      if (st !== last) {
-        last = st
-        apply()
-      }
-      raf = requestAnimationFrame(frame)
-    }
-    const onResize = () => {
-      measure()
-      last = -1
+    const onScroll = () => {
+      const show = exSnap > 0 && window.scrollY > exSnap * 0.6
+      setFabVisible((v) => (v === show ? v : show))
     }
     measure()
-    apply()
-    raf = requestAnimationFrame(frame)
+    onScroll()
+    const onResize = () => {
+      measure()
+      onScroll()
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onResize)
     return () => {
+      window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onResize)
-      if (raf) cancelAnimationFrame(raf)
     }
   }, [zoom])
 
@@ -596,27 +572,6 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       {/* Колода карточек X-Ray (стек −0/−5/−10°, свайпом листается) — на месте бывшей карточки */}
       <ExesDeck top={861} left={54} id="exploreDeck" />
 
-      {/* Флотинг-кнопка чата: 115×56, скруглённая, стекло; ПРИЛИПАЕТ к низу экрана (скролл-эффект) */}
-      {/* @ts-ignore — web-only */}
-      <div
-        id="chatBtn"
-        style={{
-          position: 'absolute',
-          top: 1323,
-          left: 143.5,
-          width: 115,
-          height: 56,
-          zIndex: 200,
-          borderRadius: 20,
-          backgroundColor: 'rgba(250,250,250,0.5)',
-          border: '1.5px solid rgba(255,255,255,0.6)',
-          boxShadow: '0px 10px 28px rgba(2,1,10,0.12)',
-          WebkitBackdropFilter: 'blur(37px)',
-          backdropFilter: 'blur(37px)',
-          willChange: 'transform',
-        }}
-      />
-
       {/* Секция «Quizzes» — ниже флотинг-кнопки (на +86 от прежней позиции) */}
       <Text
         fontFamily="$heading"
@@ -776,6 +731,31 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         style={{ position: 'absolute', top: 84, right: 28, width: 44, height: 44, zIndex: 2 }}
       />
     </YStack>
+
+    {/* Флотинг-кнопка чата — position:fixed (margin обёртки не ломает fixed; вне зума → не лагает за скроллом).
+        Скрыта на первом экране; когда доскроллил ко второму — выезжает снизу (CSS-переход). */}
+    {/* @ts-ignore — web-only */}
+    <div
+      style={{
+        position: 'fixed',
+        left: '50%',
+        bottom: 40,
+        width: 115 * zoom,
+        height: 56 * zoom,
+        marginLeft: -(115 * zoom) / 2,
+        zIndex: 200,
+        borderRadius: 20 * zoom,
+        backgroundColor: 'rgba(250,250,250,0.5)',
+        border: '1.5px solid rgba(255,255,255,0.6)',
+        boxShadow: '0px 10px 28px rgba(2,1,10,0.12)',
+        WebkitBackdropFilter: 'blur(37px)',
+        backdropFilter: 'blur(37px)',
+        transform: fabVisible ? 'translateY(0)' : `translateY(${56 * zoom + 60}px)`,
+        opacity: fabVisible ? 1 : 0,
+        transition: 'transform 380ms cubic-bezier(0.22,1,0.36,1), opacity 280ms ease',
+        pointerEvents: fabVisible ? 'auto' : 'none',
+      }}
+    />
     </div>
   )
 }
