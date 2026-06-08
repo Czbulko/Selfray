@@ -48,10 +48,12 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     let animating = false
 
     const points = () => {
-      const el = document.getElementById('exploreAnchor')
       const pts = [0]
-      if (el) pts.push(Math.max(0, Math.round(el.getBoundingClientRect().top + scroller.scrollTop - 118)))
-      return pts
+      for (const id of ['exploreAnchor', 'quizzesAnchor']) {
+        const el = document.getElementById(id)
+        if (el) pts.push(Math.max(0, Math.round(el.getBoundingClientRect().top + scroller.scrollTop - 118)))
+      }
+      return pts.sort((a, b) => a - b)
     }
     const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
 
@@ -452,6 +454,37 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
 
       {/* Колода карточек X-Ray (стек −0/−5/−10°, свайпом листается) — на месте бывшей карточки */}
       <ExesDeck top={834} left={54} />
+
+      {/* Секция «Quizzes» — 36px от низа предыдущего блока (каунтер: 834+412+20=1266 → 1302) */}
+      <Text
+        fontFamily="$heading"
+        fontWeight="900"
+        fontSize={28}
+        lineHeight={36}
+        letterSpacing={0}
+        color="#FFFFFF"
+        textAlign="center"
+        id="quizzesAnchor"
+        // @ts-ignore — web-only позиционирование (якорь JS-снапа)
+        style={{ position: 'absolute', top: 1302, left: 28, right: 28, zIndex: 2 }}
+      >
+        Quizzes
+      </Text>
+
+      {/* Сабтайтл — Hanken Grotesk Medium 17/22, 8px от тайтла (1338+8=1346) */}
+      <Text
+        fontFamily="$body"
+        fontWeight="500"
+        fontSize={17}
+        lineHeight={22}
+        letterSpacing={0}
+        color="#FFFFFF"
+        textAlign="center"
+        // @ts-ignore — web-only позиционирование
+        style={{ position: 'absolute', top: 1346, left: 28, right: 28, zIndex: 2 }}
+      >
+        Quick scans. Uncomfortable accuracy.
+      </Text>
 
       {/* Аватарка 44×44, top 84 / right 28 */}
       {/* @ts-ignore — web <img> */}
