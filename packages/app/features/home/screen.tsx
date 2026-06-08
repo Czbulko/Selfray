@@ -553,10 +553,19 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
             transform: `translateY(${-QUIZ_FAN * i}px) scale(${(1 - QUIZ_SCALE_STEP * i).toFixed(3)})`,
           }}
         >
-          {/* тень на НЕобрезанной обёртке — clip-path иначе срезает свой же drop-shadow */}
+          {/* нижний слой: бекдроп-блюр градиента (НЕ под filter — иначе backdrop-filter не работает) */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              clipPath: QUIZ_SQUIRCLE,
+              WebkitBackdropFilter: 'blur(36px)',
+              backdropFilter: 'blur(36px)',
+            }}
+          />
+          {/* белая плашка 80% + тень (drop-shadow на НЕобрезанной обёртке = тень по форме squircle) */}
           <div style={{ position: 'absolute', inset: 0, filter: 'drop-shadow(0px 8px 22px rgba(2,1,10,0.08))' }}>
-            <div style={{ position: 'absolute', inset: 0, clipPath: QUIZ_SQUIRCLE }}>
-              <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(255,255,255,0.14)' }} />
+            <div style={{ position: 'absolute', inset: 0, clipPath: QUIZ_SQUIRCLE, backgroundColor: 'rgba(255,255,255,0.8)' }}>
               <svg
                 width={346}
                 height={88}
