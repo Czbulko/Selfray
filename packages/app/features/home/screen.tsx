@@ -638,6 +638,15 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
               {QUIZ_QUESTIONS[i]}
             </Text>
           </div>
+          {/* Стрелка справа — 18px от правого края блока, по центру вертикали (блок 80, иконка 20 → top 30) */}
+          {/* @ts-ignore — web <img> */}
+          <img
+            src="/quiz-arrow.svg"
+            width={20}
+            height={20}
+            alt=""
+            style={{ position: 'absolute', right: 18, top: 30, width: 20, height: 20, zIndex: 3, pointerEvents: 'none' }}
+          />
           </Pressable>
         </div>
       ))}
