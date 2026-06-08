@@ -631,31 +631,35 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         Your inner weather, made visible.
       </Text>
 
-      {/* Mirrors — коверфлоу-листалка (как старый медиаплеер): центральная карточка 250×360 (края 76),
-          по бокам выглядывают соседние (мельче, со сдвигом). 24px от сабтайтла (2062+24=2086). */}
-      {[
-        { x: -236, s: 0.78, z: 10 },
-        { x: -128, s: 0.88, z: 20 },
-        { x: 0, s: 1, z: 30 },
-        { x: 128, s: 0.88, z: 20 },
-        { x: 236, s: 0.78, z: 10 },
-      ].map((c, i) => (
-        // @ts-ignore — web-only абсолютное позиционирование карты коверфлоу
-        <div
-          key={i}
-          style={{
-            position: 'absolute',
-            top: 2086,
-            left: 76,
-            width: 250,
-            height: 360,
-            zIndex: c.z,
-            transform: `translateX(${c.x}px) scale(${c.s})`,
-          }}
-        >
-          <MirrorGlass />
-        </div>
-      ))}
+      {/* Mirrors — коверфлоу-листалка (как старый медиаплеер): центр + по 2 карты с каждой стороны,
+          боковые повёрнуты в перспективу (rotateY). 24px от сабтайтла (2062+24=2086). */}
+      {/* @ts-ignore — контейнер с перспективой для 3D-наклона боковых карт */}
+      <div style={{ position: 'absolute', top: 2086, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px' }}>
+        {[
+          { x: -170, ry: 62, s: 0.8, z: 10 },
+          { x: -98, ry: 45, s: 0.9, z: 20 },
+          { x: 0, ry: 0, s: 1, z: 30 },
+          { x: 98, ry: -45, s: 0.9, z: 20 },
+          { x: 170, ry: -62, s: 0.8, z: 10 },
+        ].map((c, i) => (
+          // @ts-ignore — web-only карта коверфлоу (наклон в перспективу)
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 76,
+              width: 250,
+              height: 360,
+              zIndex: c.z,
+              transformOrigin: 'center center',
+              transform: `translateX(${c.x}px) rotateY(${c.ry}deg) scale(${c.s})`,
+            }}
+          >
+            <MirrorGlass />
+          </div>
+        ))}
+      </div>
 
       {/* «Таблетка»-скраббер под коверфлоу (как у старого плеера): стеклянный трек + бегунок по центру */}
       {/* @ts-ignore — web-only */}
