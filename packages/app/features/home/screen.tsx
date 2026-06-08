@@ -831,7 +831,7 @@ function MirrorsCarousel() {
           // @ts-ignore — карта коверфлоу
           <div key={i} style={cardStyle(i)}>
             <Pressable style={{ position: 'absolute', inset: 0 }}>
-              <MirrorGlass />
+              <MirrorGlass image="/mirror1.png" />
               {/* @ts-ignore — тайтл на 28px от верха карточки, сабхедер 8px ниже; по центру по горизонтали */}
               <div
                 style={{
@@ -910,7 +910,7 @@ function MirrorsCarousel() {
 
 // Стеклянная грань карточки Mirrors (250×360): бекдроп-блюр + плашка (цвет плашки) + градиент-бордер.
 // Вынесено, чтобы переиспользовать в коверфлоу (5 карт).
-function MirrorGlass() {
+function MirrorGlass({ image }: { image?: string }) {
   return (
     <>
       {/* @ts-ignore — бекдроп-блюр (вне filter, иначе backdrop-filter не работает) */}
@@ -926,6 +926,15 @@ function MirrorGlass() {
       {/* @ts-ignore — плашка + тень по форме squircle */}
       <div style={{ position: 'absolute', inset: 0, filter: 'drop-shadow(0px 8px 22px rgba(2,1,10,0.08))' }}>
         <div style={{ position: 'absolute', inset: 0, clipPath: MIRROR_SQUIRCLE, backgroundColor: 'rgba(250,250,250,0.5)' }}>
+          {image ? (
+            // @ts-ignore — картинка по центру карты (обрезана squircle), бордер рисуется поверх
+            <img
+              src={image}
+              alt=""
+              draggable={false}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          ) : null}
           <svg
             width={250}
             height={360}
