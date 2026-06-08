@@ -214,28 +214,42 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     }
   }, [zoom])
 
-  // Тизер Explore: на первом экране (внизу) блок виден с blur(4)+opacity 0.7,
-  // к моменту подъезда (Explore-снап) — чёткий и непрозрачный. Завязано на скролл.
+  // Тизер: следующая секция выглядывает снизу с blur(3)+opacity 0.7 и становится чёткой при подъезде.
+  // Explore — тизер на первом экране (герой→Explore). Quizzes — тизер на экране Explore (Explore→Quizzes).
   useEffect(() => {
     const scroller = (document.scrollingElement || document.documentElement) as HTMLElement
     let raf = 0
     let exSnap = 0
-    let els: HTMLElement[] = []
+    let qzSnap = 0
+    let exEls: HTMLElement[] = []
+    let qzEls: HTMLElement[] = []
     const measure = () => {
       const ex = document.getElementById('exploreAnchor')
+      const qz = document.getElementById('quizzesAnchor')
       exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 118 : 530
-      els = ['exploreAnchor', 'exploreSub', 'exploreDeck']
+      qzSnap = qz ? qz.getBoundingClientRect().top + scroller.scrollTop - 82 : 1145
+      exEls = ['exploreAnchor', 'exploreSub', 'exploreDeck']
         .map((id) => document.getElementById(id))
         .filter(Boolean) as HTMLElement[]
+      qzEls = [
+        document.getElementById('quizzesAnchor'),
+        document.getElementById('quizzesSub'),
+        ...Array.from(document.querySelectorAll<HTMLElement>('.quizBlock')),
+      ].filter(Boolean) as HTMLElement[]
     }
-    const apply = () => {
-      raf = 0
-      if (!els.length || exSnap <= 0) return
-      const f = Math.max(0, Math.min(1, 1 - scroller.scrollTop / exSnap)) // 1 на герое → 0 у Explore
+    const setTeaser = (els: HTMLElement[], f: number) => {
       for (const el of els) {
         el.style.filter = f > 0.02 ? `blur(${(3 * f).toFixed(2)}px)` : 'none'
         el.style.opacity = (1 - 0.3 * f).toFixed(3)
       }
+    }
+    const apply = () => {
+      raf = 0
+      const st = scroller.scrollTop
+      const f1 = exSnap > 0 ? Math.max(0, Math.min(1, 1 - st / exSnap)) : 0 // 1 на герое → 0 у Explore
+      const f2 = qzSnap > exSnap ? Math.max(0, Math.min(1, (qzSnap - st) / (qzSnap - exSnap))) : 0 // 1 у Explore → 0 у Quizzes
+      setTeaser(exEls, f1)
+      setTeaser(qzEls, f2)
     }
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(apply)
@@ -626,6 +640,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         letterSpacing={0}
         color="#FFFFFF"
         textAlign="center"
+        id="quizzesSub"
         // @ts-ignore — web-only позиционирование
         style={{ position: 'absolute', top: 1373, left: 28, right: 28, zIndex: 2 }}
       >
