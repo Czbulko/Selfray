@@ -38,11 +38,14 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     return () => window.removeEventListener('resize', apply)
   }, [])
   return (
+    // Поднимаем весь интерфейс вверх на 62px (фон лезет под часы/батарею). Сдвиг ВНЕ zoom = ровно 62px.
+    // @ts-ignore — web <div>
+    <div style={{ marginTop: -62 }}>
     <YStack
       position="relative"
       width={DESIGN_WIDTH}
-      // @ts-ignore — zoom масштабирует весь 402-макет под ширину устройства; marginTop поднимает под статус-бар
-      style={{ zoom, marginTop: 'calc(env(safe-area-inset-top, 0px) * -1)' }}
+      // @ts-ignore — zoom масштабирует весь 402-макет под ширину устройства
+      style={{ zoom }}
     >
       {/* ФОН — длинный PNG во всю ширину, натуральная высота (страница скроллится по нему) */}
       {/* @ts-ignore — web <img> */}
@@ -377,5 +380,6 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         style={{ position: 'absolute', top: 84, right: 28, width: 44, height: 44, zIndex: 2 }}
       />
     </YStack>
+    </div>
   )
 }
