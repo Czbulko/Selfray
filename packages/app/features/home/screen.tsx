@@ -168,10 +168,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       raf = 0
       if (!blocks.length) return
       const st = scroller.scrollTop
-      let p: number
-      if (st <= qc) p = qc > exOff ? (st - exOff) / (qc - exOff) : 1
-      else p = mirOff > qc ? 1 - (st - qc) / (mirOff - qc) : 1
-      p = Math.max(0, Math.min(1, p))
+      // только раскрытие на подъезде Explore→Quizzes; дальше остаётся раскрытым (НЕ схлопываем — иначе дыра)
+      const p = qc > exOff ? Math.max(0, Math.min(1, (st - exOff) / (qc - exOff))) : 1
       for (let i = 0; i < blocks.length; i++) {
         const ty = -QUIZ_FAN * i * (1 - p)
         const sc = 1 - QUIZ_SCALE_STEP * i * (1 - p)
