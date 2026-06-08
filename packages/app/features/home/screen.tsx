@@ -90,8 +90,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       if (ex) pts.push(Math.max(0, Math.round(ex.getBoundingClientRect().top + scroller.scrollTop - 118)))
       const qz = document.getElementById('quizzesAnchor')
       if (qz) {
-        // Quizzes снапится на 40px выше остальных (тайтл на 78, не 118) — больше места блокам
-        pts.push(Math.max(0, Math.round(qz.getBoundingClientRect().top + scroller.scrollTop - 78)))
+        // Quizzes снапится так, чтобы тайтл встал на 82 от топа (заезжает под шапку)
+        pts.push(Math.max(0, Math.round(qz.getBoundingClientRect().top + scroller.scrollTop - 82)))
       }
       const mr = document.getElementById('mirrorsAnchor')
       if (mr) pts.push(Math.max(0, Math.round(mr.getBoundingClientRect().top + scroller.scrollTop - 118)))
