@@ -7,6 +7,9 @@ import { ExesDeck } from './ExesDeck'
 
 // Исходный фон 804×5122 = @2× → дизайн-ширина 402. Держим колонку этой ширины.
 const DESIGN_WIDTH = 402
+// Единая высота, на которую встаёт тайтл КАЖДОГО экрана (расстояние от верха вьюпорта).
+// Один источник правды → экраны не «прыгают» в зависимости от направления свайпа.
+const TITLE_TOP = 50
 
 // iOS-squircle путь карточки CTA (figma-squircle: радиус 30, сглаживание 60%, размер 346×98).
 const CTA_SQUIRCLE_D =
@@ -106,9 +109,11 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       const exT = top('exploreAnchor')
       const qzT = top('quizzesAnchor')
       const mrT = top('mirrorsAnchor')
-      exP = exT != null ? Math.max(0, Math.round(exT - 50)) : 0
-      qzP = qzT != null ? Math.max(0, Math.round(qzT - 62)) : exP
-      mrP = mrT != null ? Math.max(0, Math.round(mrT - 98)) : qzP
+      // Все тайтлы встают на ОДНУ высоту (TITLE_TOP) — и при свайпе вниз, и при свайпе вверх,
+      // чтобы экраны не «прыгали» относительно навбара.
+      exP = exT != null ? Math.max(0, Math.round(exT - TITLE_TOP)) : 0
+      qzP = qzT != null ? Math.max(0, Math.round(qzT - TITLE_TOP)) : exP
+      mrP = mrT != null ? Math.max(0, Math.round(mrT - TITLE_TOP)) : qzP
       pages = [0, exP, qzP, mrP].filter((v, i, a) => i === 0 || v > a[i - 1])
       blocks = Array.from(document.querySelectorAll<HTMLElement>('.quizBlock'))
       exEls = ['exploreAnchor', 'exploreSub', 'exploreDeck']
@@ -131,6 +136,49 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         el.style.filter = f > 0.02 ? `blur(${(3 * f).toFixed(2)}px)` : 'none'
         el.style.opacity = (1 - 0.3 * f).toFixed(3)
       }
+    }
+
+    // Статус-бар в Safari-вкладке красится theme-color (статичный) → под ним виден шов,
+    // т.к. контент под чёлкой на каждом экране разного оттенка градиента. Лечим динамически:
+    // на каждом «осевшем» экране берём цвет фоновой PNG на линии статус-бара и красим в него
+    // theme-color + фон html/body, чтобы шов исчез и любая щель сверху совпадала по цвету.
+    let bgImgEl: HTMLImageElement | null = null
+    let bgCanvas: HTMLCanvasElement | null = null
+    let bgCtx: CanvasRenderingContext2D | null = null
+    const setBarColor = () => {
+      bgImgEl = bgImgEl || document.querySelector<HTMLImageElement>('img[src*="selfray-bg"]')
+      if (!bgImgEl || !bgImgEl.complete || !bgImgEl.naturalWidth) return
+      const r = bgImgEl.getBoundingClientRect()
+      if (r.height <= 0) return
+      const scale = bgImgEl.naturalHeight / r.height
+      const py = Math.max(0, Math.min(bgImgEl.naturalHeight - 1, Math.round((24 - r.top) * scale)))
+      const px = Math.round(bgImgEl.naturalWidth / 2)
+      let c: string | null = null
+      try {
+        if (!bgCanvas) {
+          bgCanvas = document.createElement('canvas')
+          bgCanvas.width = 1
+          bgCanvas.height = 1
+          bgCtx = bgCanvas.getContext('2d')
+        }
+        if (!bgCtx) return
+        bgCtx.drawImage(bgImgEl, px, py, 1, 1, 0, 0, 1, 1)
+        const d = bgCtx.getImageData(0, 0, 1, 1).data
+        c = `rgb(${d[0]}, ${d[1]}, ${d[2]})`
+      } catch {
+        return
+      }
+      if (!c) return
+      let m = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null
+      if (!m) {
+        m = document.createElement('meta')
+        m.setAttribute('name', 'theme-color')
+        document.head.appendChild(m)
+      }
+      m.setAttribute('content', c)
+      // в layout.tsx фон html/body стоит с !important — перебиваем тоже через important
+      document.documentElement.style.setProperty('background', c, 'important')
+      document.body.style.setProperty('background', c, 'important')
     }
 
     const render = (pos: number) => {
@@ -170,12 +218,24 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           posRef.current = target
           render(target)
           raf = 0
+          setBarColor()
         }
       }
       raf = requestAnimationFrame(step)
     }
     const goDir = (dir: number) => {
-      const np = Math.max(0, Math.min(pages.length - 1, pageRef.current + dir))
+      // Текущую страницу определяем по ФАКТИЧЕСКОЙ позиции (ближайшая из pages), а не по счётчику —
+      // так свайп вниз и вверх всегда садятся в одну и ту же точку, без рассинхрона/«прыжков».
+      let cur = 0
+      let best = Infinity
+      for (let i = 0; i < pages.length; i++) {
+        const d = Math.abs(pages[i] - posRef.current)
+        if (d < best) {
+          best = d
+          cur = i
+        }
+      }
+      const np = Math.max(0, Math.min(pages.length - 1, cur + dir))
       pageRef.current = np
       animate(pages[np])
     }
@@ -223,6 +283,10 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
 
     measure()
     render(posRef.current)
+    setBarColor()
+    // PNG может ещё грузиться на маунте — перекрасим бар, как только она готова
+    const bgImg = document.querySelector('img[src*="selfray-bg"]') as HTMLImageElement | null
+    if (bgImg && !bgImg.complete) bgImg.addEventListener('load', setBarColor, { once: true })
     window.addEventListener('touchstart', onTS, { passive: true })
     window.addEventListener('touchmove', onTM, { passive: true })
     window.addEventListener('touchend', onTE, { passive: true })
@@ -263,7 +327,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
 
       {/* спейсер: продлевает прокрутку ниже PNG (на фоне YStack-градиента), чтобы Mirrors доезжал до снапа */}
       {/* @ts-ignore — web in-flow spacer */}
-      <div style={{ width: '100%', height: 410 }} />
+      <div style={{ width: '100%', height: 800 }} />
 
 
       {/* «Selfray» — Lexend Bold, 20/33, белый, top 89 / left 28 */}
