@@ -1,3 +1,4 @@
 {
-  "installCommand": "yarn install --no-immutable"
+  "installCommand": "yarn install --no-immutable",
+  "buildCommand": "cd ../.. && yarn build && cd apps/next && next build"
 }
