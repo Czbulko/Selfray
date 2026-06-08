@@ -166,6 +166,17 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
 function CardVisual({ title, sub, shadow, tappable }: { title: string; sub: string; shadow: string; tappable?: boolean }) {
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
+      {/* бекдроп-блюр (вне filter-обёртки, иначе backdrop-filter ломается) — размывает то, что
+          под картой (соседняя карта/градиент), чтобы сквозь зафейженную иллюстрацию читалось матовое стекло */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          clipPath: SQUIRCLE,
+          WebkitBackdropFilter: 'blur(20px)',
+          backdropFilter: 'blur(20px)',
+        }}
+      />
       {/* тень на НЕобрезанной обёртке — иначе clip-path срезает свой же drop-shadow */}
       <div style={{ position: 'absolute', inset: 0, filter: shadow }}>
         <div style={{ position: 'absolute', inset: 0, clipPath: SQUIRCLE }}>
@@ -176,7 +187,7 @@ function CardVisual({ title, sub, shadow, tappable }: { title: string; sub: stri
           height={H}
           alt=""
           draggable={false}
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: 0.88 }}
         />
         <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} fill="none" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
           <defs>
