@@ -29,6 +29,11 @@ const QUIZ_SQUIRCLE = `path('${QUIZ_SQUIRCLE_D}')`
 const QUIZ_FAN = 68 // насколько схлопывается шаг 96 в сложенном виде (peek = 28px)
 const QUIZ_SCALE_STEP = 0.025 // каждый следующий блок в стопке чуть мельче
 
+// Карточка секции Mirrors: тот же iOS-squircle (радиус 30, сглаживание 60%), размер 346×360.
+const MIRROR_SQUIRCLE_D =
+  'M 298 0 c 16.8016 0 25.2024 0 31.6197 3.2698 a 30 30 0 0 1 13.1105 13.1105 c 3.2698 6.4174 3.2698 14.8181 3.2698 31.6197 L 346 312 c 0 16.8016 0 25.2024 -3.2698 31.6197 a 30 30 0 0 1 -13.1105 13.1105 c -6.4174 3.2698 -14.8181 3.2698 -31.6197 3.2698 L 48 360 c -16.8016 0 -25.2024 0 -31.6197 -3.2698 a 30 30 0 0 1 -13.1105 -13.1105 c -3.2698 -6.4174 -3.2698 -14.8181 -3.2698 -31.6197 L 0 48 c 0 -16.8016 0 -25.2024 3.2698 -31.6197 a 30 30 0 0 1 13.1105 -13.1105 c 6.4174 -3.2698 14.8181 -3.2698 31.6197 -3.2698 Z'
+const MIRROR_SQUIRCLE = `path('${MIRROR_SQUIRCLE_D}')`
+
 // Переливания CTA: текст-градиент бежит, белый блик ходит туда-сюда.
 const CTA_KEYFRAMES = `
 @keyframes ctaTextShimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
@@ -67,6 +72,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         // одна точка: тайтл Quizzes на 118 — блоки приезжают сюда УЖЕ раскрытыми (разлёт на подъезде)
         pts.push(Math.max(0, Math.round(qz.getBoundingClientRect().top + scroller.scrollTop - 118)))
       }
+      const mr = document.getElementById('mirrorsAnchor')
+      if (mr) pts.push(Math.max(0, Math.round(mr.getBoundingClientRect().top + scroller.scrollTop - 118)))
       return pts.sort((a, b) => a - b)
     }
     const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
@@ -177,8 +184,9 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     <YStack
       position="relative"
       width={DESIGN_WIDTH}
-      // @ts-ignore — zoom масштабирует весь 402-макет под ширину устройства
-      style={{ zoom }}
+      // @ts-ignore — zoom + фон = нижний край градиента (lefts blue → right pink), чтобы спейсер снизу
+      // продолжал картинку бесшовно (без лавандовой подложки), когда страница длиннее PNG
+      style={{ zoom, background: 'linear-gradient(90deg, rgb(107,142,187) 0%, rgb(166,153,179) 100%)' }}
     >
       {/* ФОН — длинный PNG во всю ширину, натуральная высота (страница скроллится по нему) */}
       {/* @ts-ignore — web <img> */}
@@ -187,6 +195,9 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         alt=""
         style={{ display: 'block', width: '100%', height: 'auto' }}
       />
+      {/* спейсер: продлевает прокрутку ниже PNG (на фоне YStack-градиента), чтобы Mirrors доезжал до снапа */}
+      {/* @ts-ignore — web in-flow spacer */}
+      <div style={{ width: '100%', height: 195 }} />
 
 
       {/* «Selfray» — Lexend Bold, 20/33, белый, top 89 / left 28 */}
@@ -588,6 +599,73 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           </div>
         </div>
       ))}
+
+      {/* Секция «Mirrors» — 36px от низа блоков Quizzes (последний: 1872+88=1960 → 1996) */}
+      <Text
+        fontFamily="$heading"
+        fontWeight="900"
+        fontSize={28}
+        lineHeight={36}
+        letterSpacing={0}
+        color="#FFFFFF"
+        textAlign="center"
+        id="mirrorsAnchor"
+        // @ts-ignore — web-only позиционирование (якорь JS-снапа)
+        style={{ position: 'absolute', top: 1996, left: 28, right: 28, zIndex: 2 }}
+      >
+        Mirrors
+      </Text>
+
+      {/* Сабтайтл — Hanken Grotesk Medium 17/22, 8px от тайтла (2032+8=2040) */}
+      <Text
+        fontFamily="$body"
+        fontWeight="500"
+        fontSize={17}
+        lineHeight={22}
+        letterSpacing={0}
+        color="#FFFFFF"
+        textAlign="center"
+        // @ts-ignore — web-only позиционирование
+        style={{ position: 'absolute', top: 2040, left: 28, right: 28, zIndex: 2 }}
+      >
+        Your inner weather, made visible.
+      </Text>
+
+      {/* Карточка Mirrors — 76px от сабтайтла (2062+76=2138), h360, край 28, стекло как у плашки/Quizzes */}
+      {/* @ts-ignore — web-only абсолютное позиционирование */}
+      <div style={{ position: 'absolute', top: 2138, left: 28, width: 346, height: 360, zIndex: 2 }}>
+        {/* нижний слой: бекдроп-блюр градиента (НЕ под filter) */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            clipPath: MIRROR_SQUIRCLE,
+            WebkitBackdropFilter: 'blur(37px)',
+            backdropFilter: 'blur(37px)',
+          }}
+        />
+        {/* стеклянная плашка (цвет «Start anywhere») + тень по форме squircle */}
+        <div style={{ position: 'absolute', inset: 0, filter: 'drop-shadow(0px 8px 22px rgba(2,1,10,0.08))' }}>
+          <div style={{ position: 'absolute', inset: 0, clipPath: MIRROR_SQUIRCLE, backgroundColor: 'rgba(250,250,250,0.5)' }}>
+            <svg
+              width={346}
+              height={360}
+              viewBox="0 0 346 360"
+              fill="none"
+              style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+            >
+              <defs>
+                <linearGradient id="mirrorBorderGrad" x1="0" y1="0" x2="346" y2="360" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stopColor="rgba(255,255,255,0.9)" />
+                  <stop offset="0.5" stopColor="rgba(255,255,255,0.55)" />
+                  <stop offset="1" stopColor="rgba(255,255,255,0.3)" />
+                </linearGradient>
+              </defs>
+              <path d={MIRROR_SQUIRCLE_D} stroke="url(#mirrorBorderGrad)" strokeWidth={2} fill="none" />
+            </svg>
+          </div>
+        </div>
+      </div>
 
       {/* Аватарка 44×44, top 84 / right 28 */}
       {/* @ts-ignore — web <img> */}
