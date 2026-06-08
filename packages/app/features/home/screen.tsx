@@ -288,7 +288,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       />
       {/* спейсер: продлевает прокрутку ниже PNG (на фоне YStack-градиента), чтобы Mirrors доезжал до снапа */}
       {/* @ts-ignore — web in-flow spacer */}
-      <div style={{ width: '100%', height: 195 }} />
+      <div style={{ width: '100%', height: 285 }} />
 
 
       {/* «Selfray» — Lexend Bold, 20/33, белый, top 89 / left 28 */}
@@ -615,7 +615,26 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       {/* Колода карточек X-Ray (стек −0/−5/−10°, свайпом листается) — на месте бывшей карточки */}
       <ExesDeck top={861} left={54} id="exploreDeck" />
 
-      {/* Секция «Quizzes» — 36px от низа предыдущего блока (каунтер: 834+412+20=1266 → 1302) */}
+      {/* Флотинг-кнопка чата: 115×56, скруглённая, стекло; 30px от низа каунтера (1293) → top 1323, по центру */}
+      {/* @ts-ignore — web-only */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 1323,
+          left: 143.5,
+          width: 115,
+          height: 56,
+          zIndex: 4,
+          borderRadius: 20,
+          backgroundColor: 'rgba(250,250,250,0.5)',
+          border: '1.5px solid rgba(255,255,255,0.6)',
+          boxShadow: '0px 10px 28px rgba(2,1,10,0.12)',
+          WebkitBackdropFilter: 'blur(37px)',
+          backdropFilter: 'blur(37px)',
+        }}
+      />
+
+      {/* Секция «Quizzes» — ниже флотинг-кнопки (на +86 от прежней позиции) */}
       <Text
         fontFamily="$heading"
         fontWeight="900"
@@ -626,7 +645,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="quizzesAnchor"
         // @ts-ignore — web-only позиционирование (якорь JS-снапа)
-        style={{ position: 'absolute', top: 1329, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 1415, left: 28, right: 28, zIndex: 2 }}
       >
         Quizzes
       </Text>
@@ -642,7 +661,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="quizzesSub"
         // @ts-ignore — web-only позиционирование
-        style={{ position: 'absolute', top: 1373, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 1459, left: 28, right: 28, zIndex: 2 }}
       >
         Quick scans. Uncomfortable accuracy.
       </Text>
@@ -656,7 +675,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           className="quizBlock"
           style={{
             position: 'absolute',
-            top: 1419 + i * 88,
+            top: 1505 + i * 88,
             left: 28,
             width: 346,
             height: 80,
@@ -740,7 +759,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="mirrorsAnchor"
         // @ts-ignore — web-only позиционирование (якорь JS-снапа)
-        style={{ position: 'absolute', top: 1975, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 2061, left: 28, right: 28, zIndex: 2 }}
       >
         Mirrors
       </Text>
@@ -755,7 +774,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         color="#FFFFFF"
         textAlign="center"
         // @ts-ignore — web-only позиционирование
-        style={{ position: 'absolute', top: 2019, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 2105, left: 28, right: 28, zIndex: 2 }}
       >
         Your inner weather, made visible.
       </Text>
@@ -890,7 +909,7 @@ function MirrorsCarousel() {
         onPointerMove={onCMove}
         onPointerUp={onCUp}
         onPointerCancel={onCUp}
-        style={{ position: 'absolute', top: 2065, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px', touchAction: 'pan-y' }}
+        style={{ position: 'absolute', top: 2151, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px', touchAction: 'pan-y' }}
       >
         {Array.from({ length: N }).map((_, i) => (
           // @ts-ignore — карта коверфлоу
@@ -941,7 +960,7 @@ function MirrorsCarousel() {
         onPointerCancel={onSUp}
         style={{
           position: 'absolute',
-          top: 2465,
+          top: 2551,
           left: 76,
           width: 250,
           height: 44,
