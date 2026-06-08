@@ -143,38 +143,55 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     }
   }, [zoom])
 
-  // Раскрытие стека Quizzes «гармошкой», завязанное на скролл (iOS notification-center).
-  // p=0 на Explore → p=1 на Quizzes (разлёт на подъезде). translateY/scale в дизайн-px (зум сам масштабирует).
+  // Раскрытие стека Quizzes «гармошкой» (iOS notification-center), завязано на скролл.
+  // ТЕНТ: p=0 на Explore → p=1 на Quizzes (раскрытие на подъезде) → p=0 на Mirrors (схлопывание при свайпе дальше).
+  // Перф: позиции якорей и список блоков считаем ОДИН раз (measure), а в кадре только читаем scrollTop
+  // и пишем transform — без getBoundingClientRect каждый кадр (иначе layout thrash → дёрганье на телефоне).
   useEffect(() => {
     const scroller = (document.scrollingElement || document.documentElement) as HTMLElement
     let raf = 0
-    const update = () => {
-      raf = 0
-      const qz = document.getElementById('quizzesAnchor')
-      const ex = document.getElementById('exploreAnchor')
-      const blocks = document.querySelectorAll<HTMLElement>('.quizBlock')
-      if (!qz || !blocks.length) return
+    let exOff = 0
+    let qc = 0
+    let mirOff = 0
+    let blocks: HTMLElement[] = []
+    const measure = () => {
       const st = scroller.scrollTop
-      // разлёт завязан на ПОДЪЕЗД: p=0 на Explore (530) → p=1 на Quizzes (1083),
-      // так блоки прилетают уже раскрытыми за тот же свайп, без второго свайпа
-      const qc = qz.getBoundingClientRect().top + st - 118
-      const exOff = ex ? ex.getBoundingClientRect().top + st - 118 : qc - 553
-      const p = Math.max(0, Math.min(1, (st - exOff) / Math.max(1, qc - exOff)))
-      blocks.forEach((el, i) => {
+      const ex = document.getElementById('exploreAnchor')
+      const qz = document.getElementById('quizzesAnchor')
+      const mr = document.getElementById('mirrorsAnchor')
+      blocks = Array.from(document.querySelectorAll<HTMLElement>('.quizBlock'))
+      qc = qz ? qz.getBoundingClientRect().top + st - 118 : 0
+      exOff = ex ? ex.getBoundingClientRect().top + st - 118 : qc - 553
+      mirOff = mr ? mr.getBoundingClientRect().top + st - 118 : qc + 553
+    }
+    const apply = () => {
+      raf = 0
+      if (!blocks.length) return
+      const st = scroller.scrollTop
+      let p: number
+      if (st <= qc) p = qc > exOff ? (st - exOff) / (qc - exOff) : 1
+      else p = mirOff > qc ? 1 - (st - qc) / (mirOff - qc) : 1
+      p = Math.max(0, Math.min(1, p))
+      for (let i = 0; i < blocks.length; i++) {
         const ty = -QUIZ_FAN * i * (1 - p)
         const sc = 1 - QUIZ_SCALE_STEP * i * (1 - p)
-        el.style.transform = `translateY(${ty.toFixed(2)}px) scale(${sc.toFixed(4)})`
-      })
+        blocks[i].style.transform = `translateY(${ty.toFixed(2)}px) scale(${sc.toFixed(4)})`
+      }
     }
     const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(update)
+      if (!raf) raf = requestAnimationFrame(apply)
     }
-    update()
+    const onResize = () => {
+      measure()
+      apply()
+    }
+    measure()
+    apply()
     window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
+    window.addEventListener('resize', onResize)
     return () => {
       window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
+      window.removeEventListener('resize', onResize)
       if (raf) cancelAnimationFrame(raf)
     }
   }, [zoom])
