@@ -24,6 +24,11 @@ const QUIZ_SQUIRCLE_D =
   'M 302 0 c 13.0401 0 19.5602 0 24.751 1.9926 a 30 30 0 0 1 17.2564 17.2564 c 1.9926 5.1909 1.9926 11.7109 1.9926 24.751 L 346 44 c 0 13.0401 0 19.5602 -1.9926 24.751 a 30 30 0 0 1 -17.2564 17.2564 c -5.1909 1.9926 -11.7109 1.9926 -24.751 1.9926 L 44 88 c -13.0401 0 -19.5602 0 -24.751 -1.9926 a 30 30 0 0 1 -17.2564 -17.2564 c -1.9926 -5.1909 -1.9926 -11.7109 -1.9926 -24.751 L 0 44 c 0 -13.0401 0 -19.5602 1.9926 -24.751 a 30 30 0 0 1 17.2564 -17.2564 c 5.1909 -1.9926 11.7109 -1.9926 24.751 -1.9926 Z'
 const QUIZ_SQUIRCLE = `path('${QUIZ_SQUIRCLE_D}')`
 
+// Стек-гармошка Quizzes (как уведомления iOS): в сложенном виде каждый блок выше следующего
+// на (96 − QUIZ_FAN) = peek, чуть мельче по scale; при скролле раскрывается до шага 96.
+const QUIZ_FAN = 68 // насколько схлопывается шаг 96 в сложенном виде (peek = 28px)
+const QUIZ_SCALE_STEP = 0.025 // каждый следующий блок в стопке чуть мельче
+
 // Переливания CTA: текст-градиент бежит, белый блик ходит туда-сюда.
 const CTA_KEYFRAMES = `
 @keyframes ctaTextShimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
@@ -55,9 +60,13 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
 
     const points = () => {
       const pts = [0]
-      for (const id of ['exploreAnchor', 'quizzesAnchor']) {
-        const el = document.getElementById(id)
-        if (el) pts.push(Math.max(0, Math.round(el.getBoundingClientRect().top + scroller.scrollTop - 118)))
+      const ex = document.getElementById('exploreAnchor')
+      if (ex) pts.push(Math.max(0, Math.round(ex.getBoundingClientRect().top + scroller.scrollTop - 118)))
+      const qz = document.getElementById('quizzesAnchor')
+      if (qz) {
+        const qc = Math.max(0, Math.round(qz.getBoundingClientRect().top + scroller.scrollTop - 118))
+        pts.push(qc) // Quizzes сложено (стопка)
+        pts.push(qc + Math.round(5 * QUIZ_FAN * (window.innerWidth / 402))) // Quizzes раскрыто (гармошка)
       }
       return pts.sort((a, b) => a - b)
     }
@@ -124,6 +133,39 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       window.removeEventListener('touchmove', onTM)
       window.removeEventListener('touchend', onTE)
       window.removeEventListener('wheel', onWheel)
+    }
+  }, [zoom])
+
+  // Раскрытие стека Quizzes «гармошкой», завязанное на скролл (iOS notification-center).
+  // p=0 у точки «сложено» (Qc) → p=1 через 5·QUIZ_FAN скролла. translateY/scale в дизайн-px (зум сам масштабирует).
+  useEffect(() => {
+    const scroller = (document.scrollingElement || document.documentElement) as HTMLElement
+    let raf = 0
+    const update = () => {
+      raf = 0
+      const qz = document.getElementById('quizzesAnchor')
+      const blocks = document.querySelectorAll<HTMLElement>('.quizBlock')
+      if (!qz || !blocks.length) return
+      const z = window.innerWidth / 402
+      const qc = qz.getBoundingClientRect().top + scroller.scrollTop - 118
+      const expand = 5 * QUIZ_FAN * z // дистанция скролла (real px) для полного раскрытия
+      const p = Math.max(0, Math.min(1, (scroller.scrollTop - qc) / expand))
+      blocks.forEach((el, i) => {
+        const ty = -QUIZ_FAN * i * (1 - p)
+        const sc = 1 - QUIZ_SCALE_STEP * i * (1 - p)
+        el.style.transform = `translateY(${ty.toFixed(2)}px) scale(${sc.toFixed(4)})`
+      })
+    }
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update)
+    }
+    update()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      if (raf) cancelAnimationFrame(raf)
     }
   }, [zoom])
 
@@ -495,8 +537,22 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       {/* 6 блоков-строк: 24px от сабтайтла (1368+24=1392), высота 88, край 28, между блоками 8 (шаг 96).
           Скругление/бордер/тень как у карточек: squircle r30, белый градиент-бордер, мягкая тень 8%. */}
       {[0, 1, 2, 3, 4, 5].map((i) => (
-        // @ts-ignore — web-only абсолютное позиционирование строки
-        <div key={i} style={{ position: 'absolute', top: 1392 + i * 96, left: 28, width: 346, height: 88, zIndex: 2 }}>
+        // @ts-ignore — web-only; начальное состояние = СЛОЖЕНО (p=0), раскрытие гонит scroll-эффект
+        <div
+          key={i}
+          className="quizBlock"
+          style={{
+            position: 'absolute',
+            top: 1392 + i * 96,
+            left: 28,
+            width: 346,
+            height: 88,
+            zIndex: 100 - i, // верхний блок стопки над нижними при наложении
+            transformOrigin: 'top center',
+            willChange: 'transform',
+            transform: `translateY(${-QUIZ_FAN * i}px) scale(${(1 - QUIZ_SCALE_STEP * i).toFixed(3)})`,
+          }}
+        >
           {/* тень на НЕобрезанной обёртке — clip-path иначе срезает свой же drop-shadow */}
           <div style={{ position: 'absolute', inset: 0, filter: 'drop-shadow(0px 8px 22px rgba(2,1,10,0.08))' }}>
             <div style={{ position: 'absolute', inset: 0, clipPath: QUIZ_SQUIRCLE }}>
