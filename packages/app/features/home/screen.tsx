@@ -45,6 +45,7 @@ const CTA_KEYFRAMES = `
 export function HomeScreen(_props: { onLinkPress?: () => void }) {
   const [micPressed, setMicPressed] = useState(false)
   const [micBurst, setMicBurst] = useState(0) // счётчик нажатий — ретриггерит бёрст
+  const [platePressed, setPlatePressed] = useState(false) // тап по плашке → расплющивание в стороны
   // Масштаб всего 402-макета под ширину устройства (отступы/тайтл/инпут/карточки — пропорционально)
   const [zoom, setZoom] = useState(1)
   useEffect(() => {
@@ -285,6 +286,10 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       <YStack
         position="absolute"
         height={98}
+        onPointerDown={() => setPlatePressed(true)}
+        onPointerUp={() => setPlatePressed(false)}
+        onPointerCancel={() => setPlatePressed(false)}
+        onPointerLeave={() => setPlatePressed(false)}
         // @ts-ignore — web-only: iOS-squircle + тень. Заливку/блик/бордер дают слои внутри.
         style={{
           top: 556,
@@ -293,6 +298,9 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           zIndex: 2,
           // тень на НЕобрезанной обёртке — clip-path внутри, иначе он срезает свой drop-shadow
           filter: 'drop-shadow(0px 2px 42px rgba(0,0,0,0.10))',
+          transformOrigin: 'center center',
+          transition: 'transform 180ms ease',
+          transform: platePressed ? 'scaleX(1.04) scaleY(0.9)' : 'scaleX(1) scaleY(1)',
         }}
       >
         {/* @ts-ignore — внутренний clip-контейнер (squircle) */}
@@ -566,6 +574,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
             transform: `translateY(${-QUIZ_FAN * i}px) scale(${(1 - QUIZ_SCALE_STEP * i).toFixed(3)})`,
           }}
         >
+          <Pressable style={{ position: 'absolute', inset: 0 }}>
           {/* нижний слой: бекдроп-блюр градиента (НЕ под filter — иначе backdrop-filter не работает) */}
           <div
             style={{
@@ -597,6 +606,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
               </svg>
             </div>
           </div>
+          </Pressable>
         </div>
       ))}
 
@@ -644,6 +654,33 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         style={{ position: 'absolute', top: 84, right: 28, width: 44, height: 44, zIndex: 2 }}
       />
     </YStack>
+    </div>
+  )
+}
+
+// Тап-эффект как у колоды: лёгкое нажатие. squash=true → расплющивание в стороны (шире/ниже),
+// иначе — равномерное сжатие. Обёртка кладётся внутрь карточки (position:absolute, inset:0).
+function Pressable({
+  children,
+  squash,
+  style,
+}: {
+  children: React.ReactNode
+  squash?: boolean
+  style?: React.CSSProperties
+}) {
+  const [pressed, setPressed] = useState(false)
+  const t = pressed ? (squash ? 'scaleX(1.05) scaleY(0.9)' : 'scale(0.95)') : 'scale(1)'
+  return (
+    // @ts-ignore — web-only
+    <div
+      onPointerDown={() => setPressed(true)}
+      onPointerUp={() => setPressed(false)}
+      onPointerCancel={() => setPressed(false)}
+      onPointerLeave={() => setPressed(false)}
+      style={{ transformOrigin: 'center center', transition: 'transform 170ms ease', ...style, transform: t }}
+    >
+      {children}
     </div>
   )
 }
@@ -738,7 +775,9 @@ function MirrorsCarousel() {
         {Array.from({ length: N }).map((_, i) => (
           // @ts-ignore — карта коверфлоу
           <div key={i} style={cardStyle(i)}>
-            <MirrorGlass />
+            <Pressable style={{ position: 'absolute', inset: 0 }}>
+              <MirrorGlass />
+            </Pressable>
           </div>
         ))}
       </div>
