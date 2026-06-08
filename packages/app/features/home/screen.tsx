@@ -90,9 +90,11 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     let pages: number[] = [0]
     let exP = 0
     let qzP = 0
+    let mrP = 0
     let blocks: HTMLElement[] = []
     let exEls: HTMLElement[] = []
     let qzEls: HTMLElement[] = []
+    let mrEls: HTMLElement[] = []
 
     const measure = () => {
       wrap = wrapRef.current
@@ -106,7 +108,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       const mrT = top('mirrorsAnchor')
       exP = exT != null ? Math.max(0, Math.round(exT - 50)) : 0
       qzP = qzT != null ? Math.max(0, Math.round(qzT - 62)) : exP
-      const mrP = mrT != null ? Math.max(0, Math.round(mrT - 98)) : qzP
+      mrP = mrT != null ? Math.max(0, Math.round(mrT - 98)) : qzP
       pages = [0, exP, qzP, mrP].filter((v, i, a) => i === 0 || v > a[i - 1])
       blocks = Array.from(document.querySelectorAll<HTMLElement>('.quizBlock'))
       exEls = ['exploreAnchor', 'exploreSub', 'exploreDeck']
@@ -116,6 +118,11 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         document.getElementById('quizzesAnchor'),
         document.getElementById('quizzesSub'),
         ...blocks,
+      ].filter(Boolean) as HTMLElement[]
+      mrEls = [
+        document.getElementById('mirrorsAnchor'),
+        document.getElementById('mirrorsSub'),
+        ...Array.from(document.querySelectorAll<HTMLElement>('.mirrorEl')),
       ].filter(Boolean) as HTMLElement[]
     }
 
@@ -138,8 +145,10 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       }
       const f1 = exP > 0 ? Math.max(0, Math.min(1, 1 - pos / exP)) : 0
       const f2 = qzP > exP ? Math.max(0, Math.min(1, (qzP - pos) / (qzP - exP))) : 0
+      const f3 = mrP > qzP ? Math.max(0, Math.min(1, (mrP - pos) / (mrP - qzP))) : 0
       setTeaser(exEls, f1)
       setTeaser(qzEls, f2)
+      setTeaser(mrEls, f3)
       const show = exP > 0 && pos > exP * 0.6
       setFabVisible((v) => (v === show ? v : show))
     }
@@ -233,7 +242,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     // @ts-ignore — внешний статичный контейнер (FAB вне translateY-трека, иначе fixed сломается)
     <div>
     {/* @ts-ignore — ТРЕК пейджера: его двигаем translateY; внутри -62 сдвиг под статус-бар */}
-    <div ref={wrapRef} style={{ marginTop: -62 }}>
+    <div ref={wrapRef} id="pagerWrap" style={{ marginTop: -62 }}>
     <YStack
       position="relative"
       width={DESIGN_WIDTH}
@@ -254,7 +263,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
 
       {/* спейсер: продлевает прокрутку ниже PNG (на фоне YStack-градиента), чтобы Mirrors доезжал до снапа */}
       {/* @ts-ignore — web in-flow spacer */}
-      <div style={{ width: '100%', height: 330 }} />
+      <div style={{ width: '100%', height: 410 }} />
 
 
       {/* «Selfray» — Lexend Bold, 20/33, белый, top 89 / left 28 */}
@@ -706,7 +715,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="mirrorsAnchor"
         // @ts-ignore — web-only + CSS-снап: тайтл встаёт на ~98 от верха
-        style={{ position: 'absolute', top: 2054, left: 28, right: 28, zIndex: 2, scrollSnapAlign: 'start', scrollMarginTop: 98 }}
+        style={{ position: 'absolute', top: 2134, left: 28, right: 28, zIndex: 2, scrollSnapAlign: 'start', scrollMarginTop: 98 }}
       >
         Mirrors
       </Text>
@@ -720,8 +729,9 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         letterSpacing={0}
         color="#FFFFFF"
         textAlign="center"
+        id="mirrorsSub"
         // @ts-ignore — web-only позиционирование
-        style={{ position: 'absolute', top: 2098, left: 28, right: 28, zIndex: 2 }}
+        style={{ position: 'absolute', top: 2178, left: 28, right: 28, zIndex: 2 }}
       >
         Your inner weather, made visible.
       </Text>
@@ -878,11 +888,12 @@ function MirrorsCarousel() {
     <>
       {/* @ts-ignore — коверфлоу с перспективой + свайп (pan-y = вертикальный скролл страницы остаётся) */}
       <div
+        className="mirrorEl"
         onPointerDown={onCDown}
         onPointerMove={onCMove}
         onPointerUp={onCUp}
         onPointerCancel={onCUp}
-        style={{ position: 'absolute', top: 2144, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px', touchAction: 'pan-y' }}
+        style={{ position: 'absolute', top: 2224, left: 0, width: DESIGN_WIDTH, height: 360, zIndex: 2, perspective: '900px', touchAction: 'pan-y' }}
       >
         {Array.from({ length: N }).map((_, i) => (
           // @ts-ignore — карта коверфлоу
@@ -927,13 +938,14 @@ function MirrorsCarousel() {
       {/* @ts-ignore — слайдер-таблетка: тап/перетаскивание бегунка выбирает карту */}
       <div
         ref={trackRef}
+        className="mirrorEl"
         onPointerDown={onSDown}
         onPointerMove={onSMove}
         onPointerUp={onSUp}
         onPointerCancel={onSUp}
         style={{
           position: 'absolute',
-          top: 2544,
+          top: 2624,
           left: 76,
           width: 250,
           height: 44,
