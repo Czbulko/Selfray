@@ -631,40 +631,65 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         Your inner weather, made visible.
       </Text>
 
-      {/* Карточка Mirrors — края по 76 (ширина 250, центр), 24px от сабтайтла (2062+24=2086), h360, стекло как у плашки */}
-      {/* @ts-ignore — web-only абсолютное позиционирование */}
-      <div style={{ position: 'absolute', top: 2086, left: 76, width: 250, height: 360, zIndex: 2 }}>
-        {/* нижний слой: бекдроп-блюр градиента (НЕ под filter) */}
+      {/* Mirrors — коверфлоу-листалка (как старый медиаплеер): центральная карточка 250×360 (края 76),
+          по бокам выглядывают соседние (мельче, со сдвигом). 24px от сабтайтла (2062+24=2086). */}
+      {[
+        { x: -236, s: 0.78, z: 10 },
+        { x: -128, s: 0.88, z: 20 },
+        { x: 0, s: 1, z: 30 },
+        { x: 128, s: 0.88, z: 20 },
+        { x: 236, s: 0.78, z: 10 },
+      ].map((c, i) => (
+        // @ts-ignore — web-only абсолютное позиционирование карты коверфлоу
+        <div
+          key={i}
+          style={{
+            position: 'absolute',
+            top: 2086,
+            left: 76,
+            width: 250,
+            height: 360,
+            zIndex: c.z,
+            transform: `translateX(${c.x}px) scale(${c.s})`,
+          }}
+        >
+          <MirrorGlass />
+        </div>
+      ))}
+
+      {/* «Таблетка»-скраббер под коверфлоу (как у старого плеера): стеклянный трек + бегунок по центру */}
+      {/* @ts-ignore — web-only */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 2486,
+          left: 76,
+          width: 250,
+          height: 56,
+          zIndex: 31,
+          borderRadius: 28,
+          backgroundColor: 'rgba(250,250,250,0.4)',
+          border: '1.5px solid rgba(255,255,255,0.55)',
+          boxShadow: '0px 8px 22px rgba(2,1,10,0.08)',
+          WebkitBackdropFilter: 'blur(37px)',
+          backdropFilter: 'blur(37px)',
+        }}
+      >
+        {/* бегунок по центру */}
+        {/* @ts-ignore */}
         <div
           style={{
             position: 'absolute',
-            inset: 0,
-            clipPath: MIRROR_SQUIRCLE,
-            WebkitBackdropFilter: 'blur(37px)',
-            backdropFilter: 'blur(37px)',
+            top: 8,
+            left: '50%',
+            marginLeft: -48,
+            width: 96,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: 'rgba(250,250,250,0.9)',
+            boxShadow: '0px 2px 8px rgba(2,1,10,0.12)',
           }}
         />
-        {/* стеклянная плашка (цвет «Start anywhere») + тень по форме squircle */}
-        <div style={{ position: 'absolute', inset: 0, filter: 'drop-shadow(0px 8px 22px rgba(2,1,10,0.08))' }}>
-          <div style={{ position: 'absolute', inset: 0, clipPath: MIRROR_SQUIRCLE, backgroundColor: 'rgba(250,250,250,0.5)' }}>
-            <svg
-              width={250}
-              height={360}
-              viewBox="0 0 250 360"
-              fill="none"
-              style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
-            >
-              <defs>
-                <linearGradient id="mirrorBorderGrad" x1="0" y1="0" x2="250" y2="360" gradientUnits="userSpaceOnUse">
-                  <stop offset="0" stopColor="rgba(255,255,255,0.9)" />
-                  <stop offset="0.5" stopColor="rgba(255,255,255,0.55)" />
-                  <stop offset="1" stopColor="rgba(255,255,255,0.3)" />
-                </linearGradient>
-              </defs>
-              <path d={MIRROR_SQUIRCLE_D} stroke="url(#mirrorBorderGrad)" strokeWidth={2} fill="none" />
-            </svg>
-          </div>
-        </div>
       </div>
 
       {/* Аватарка 44×44, top 84 / right 28 */}
@@ -678,5 +703,45 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       />
     </YStack>
     </div>
+  )
+}
+
+// Стеклянная грань карточки Mirrors (250×360): бекдроп-блюр + плашка (цвет плашки) + градиент-бордер.
+// Вынесено, чтобы переиспользовать в коверфлоу (5 карт).
+function MirrorGlass() {
+  return (
+    <>
+      {/* @ts-ignore — бекдроп-блюр (вне filter, иначе backdrop-filter не работает) */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          clipPath: MIRROR_SQUIRCLE,
+          WebkitBackdropFilter: 'blur(37px)',
+          backdropFilter: 'blur(37px)',
+        }}
+      />
+      {/* @ts-ignore — плашка + тень по форме squircle */}
+      <div style={{ position: 'absolute', inset: 0, filter: 'drop-shadow(0px 8px 22px rgba(2,1,10,0.08))' }}>
+        <div style={{ position: 'absolute', inset: 0, clipPath: MIRROR_SQUIRCLE, backgroundColor: 'rgba(250,250,250,0.5)' }}>
+          <svg
+            width={250}
+            height={360}
+            viewBox="0 0 250 360"
+            fill="none"
+            style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+          >
+            <defs>
+              <linearGradient id="mirrorBorderGrad" x1="0" y1="0" x2="250" y2="360" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stopColor="rgba(255,255,255,0.9)" />
+                <stop offset="0.5" stopColor="rgba(255,255,255,0.55)" />
+                <stop offset="1" stopColor="rgba(255,255,255,0.3)" />
+              </linearGradient>
+            </defs>
+            <path d={MIRROR_SQUIRCLE_D} stroke="url(#mirrorBorderGrad)" strokeWidth={2} fill="none" />
+          </svg>
+        </div>
+      </div>
+    </>
   )
 }
