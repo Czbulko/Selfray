@@ -29,9 +29,9 @@ const QUIZ_SQUIRCLE = `path('${QUIZ_SQUIRCLE_D}')`
 const QUIZ_FAN = 68 // насколько схлопывается шаг 96 в сложенном виде (peek = 28px)
 const QUIZ_SCALE_STEP = 0.025 // каждый следующий блок в стопке чуть мельче
 
-// Карточка секции Mirrors: тот же iOS-squircle (радиус 30, сглаживание 60%), размер 346×360.
+// Карточка секции Mirrors: тот же iOS-squircle (радиус 30, сглаживание 60%), размер 250×360 (края по 76).
 const MIRROR_SQUIRCLE_D =
-  'M 298 0 c 16.8016 0 25.2024 0 31.6197 3.2698 a 30 30 0 0 1 13.1105 13.1105 c 3.2698 6.4174 3.2698 14.8181 3.2698 31.6197 L 346 312 c 0 16.8016 0 25.2024 -3.2698 31.6197 a 30 30 0 0 1 -13.1105 13.1105 c -6.4174 3.2698 -14.8181 3.2698 -31.6197 3.2698 L 48 360 c -16.8016 0 -25.2024 0 -31.6197 -3.2698 a 30 30 0 0 1 -13.1105 -13.1105 c -3.2698 -6.4174 -3.2698 -14.8181 -3.2698 -31.6197 L 0 48 c 0 -16.8016 0 -25.2024 3.2698 -31.6197 a 30 30 0 0 1 13.1105 -13.1105 c 6.4174 -3.2698 14.8181 -3.2698 31.6197 -3.2698 Z'
+  'M 202 0 c 16.8016 0 25.2024 0 31.6197 3.2698 a 30 30 0 0 1 13.1105 13.1105 c 3.2698 6.4174 3.2698 14.8181 3.2698 31.6197 L 250 312 c 0 16.8016 0 25.2024 -3.2698 31.6197 a 30 30 0 0 1 -13.1105 13.1105 c -6.4174 3.2698 -14.8181 3.2698 -31.6197 3.2698 L 48 360 c -16.8016 0 -25.2024 0 -31.6197 -3.2698 a 30 30 0 0 1 -13.1105 -13.1105 c -3.2698 -6.4174 -3.2698 -14.8181 -3.2698 -31.6197 L 0 48 c 0 -16.8016 0 -25.2024 3.2698 -31.6197 a 30 30 0 0 1 13.1105 -13.1105 c 6.4174 -3.2698 14.8181 -3.2698 31.6197 -3.2698 Z'
 const MIRROR_SQUIRCLE = `path('${MIRROR_SQUIRCLE_D}')`
 
 // Переливания CTA: текст-градиент бежит, белый блик ходит туда-сюда.
@@ -631,9 +631,9 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         Your inner weather, made visible.
       </Text>
 
-      {/* Карточка Mirrors — 76px от сабтайтла (2062+76=2138), h360, край 28, стекло как у плашки/Quizzes */}
+      {/* Карточка Mirrors — края по 76 (ширина 250, центр), 24px от сабтайтла (2062+24=2086), h360, стекло как у плашки */}
       {/* @ts-ignore — web-only абсолютное позиционирование */}
-      <div style={{ position: 'absolute', top: 2138, left: 28, width: 346, height: 360, zIndex: 2 }}>
+      <div style={{ position: 'absolute', top: 2086, left: 76, width: 250, height: 360, zIndex: 2 }}>
         {/* нижний слой: бекдроп-блюр градиента (НЕ под filter) */}
         <div
           style={{
@@ -648,14 +648,14 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         <div style={{ position: 'absolute', inset: 0, filter: 'drop-shadow(0px 8px 22px rgba(2,1,10,0.08))' }}>
           <div style={{ position: 'absolute', inset: 0, clipPath: MIRROR_SQUIRCLE, backgroundColor: 'rgba(250,250,250,0.5)' }}>
             <svg
-              width={346}
+              width={250}
               height={360}
-              viewBox="0 0 346 360"
+              viewBox="0 0 250 360"
               fill="none"
               style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
             >
               <defs>
-                <linearGradient id="mirrorBorderGrad" x1="0" y1="0" x2="346" y2="360" gradientUnits="userSpaceOnUse">
+                <linearGradient id="mirrorBorderGrad" x1="0" y1="0" x2="250" y2="360" gradientUnits="userSpaceOnUse">
                   <stop offset="0" stopColor="rgba(255,255,255,0.9)" />
                   <stop offset="0.5" stopColor="rgba(255,255,255,0.55)" />
                   <stop offset="1" stopColor="rgba(255,255,255,0.3)" />
