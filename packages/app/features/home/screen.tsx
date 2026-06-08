@@ -29,6 +29,16 @@ const QUIZ_SQUIRCLE = `path('${QUIZ_SQUIRCLE_D}')`
 const QUIZ_FAN = 68 // насколько схлопывается шаг 96 в сложенном виде (peek = 28px)
 const QUIZ_SCALE_STEP = 0.025 // каждый следующий блок в стопке чуть мельче
 
+// Вопросы в блоках Quizzes (по порядку сверху вниз)
+const QUIZ_QUESTIONS = [
+  'What makes you hard to forget?',
+  'Your romantic archetype',
+  "What's quietly holding you back?",
+  'Your attachment style',
+  'What shaped your patterns?',
+  'The energy you give off without trying',
+]
+
 // Карточка секции Mirrors: тот же iOS-squircle (радиус 30, сглаживание 60%), размер 250×360 (края по 76).
 const MIRROR_SQUIRCLE_D =
   'M 202 0 c 16.8016 0 25.2024 0 31.6197 3.2698 a 30 30 0 0 1 13.1105 13.1105 c 3.2698 6.4174 3.2698 14.8181 3.2698 31.6197 L 250 312 c 0 16.8016 0 25.2024 -3.2698 31.6197 a 30 30 0 0 1 -13.1105 13.1105 c -6.4174 3.2698 -14.8181 3.2698 -31.6197 3.2698 L 48 360 c -16.8016 0 -25.2024 0 -31.6197 -3.2698 a 30 30 0 0 1 -13.1105 -13.1105 c -3.2698 -6.4174 -3.2698 -14.8181 -3.2698 -31.6197 L 0 48 c 0 -16.8016 0 -25.2024 3.2698 -31.6197 a 30 30 0 0 1 13.1105 -13.1105 c 6.4174 -3.2698 14.8181 -3.2698 31.6197 -3.2698 Z'
@@ -620,6 +630,13 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
                 <path d={QUIZ_SQUIRCLE_D} stroke="url(#quizBorderGrad)" strokeWidth={2} fill="none" />
               </svg>
             </div>
+          </div>
+          {/* Вопрос: лево 82 / право 62 от краёв экрана (внутри блока 54/34), левый флаг, по центру вертикали */}
+          {/* @ts-ignore — web-only */}
+          <div style={{ position: 'absolute', left: 54, right: 34, top: 0, bottom: 0, display: 'flex', alignItems: 'center', zIndex: 3, pointerEvents: 'none' }}>
+            <Text fontFamily="$body" fontWeight="500" fontSize={17} lineHeight={22} letterSpacing={0} color="#41474F">
+              {QUIZ_QUESTIONS[i]}
+            </Text>
           </div>
           </Pressable>
         </div>
