@@ -70,8 +70,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       if (ex) pts.push(Math.max(0, Math.round(ex.getBoundingClientRect().top + scroller.scrollTop - 118)))
       const qz = document.getElementById('quizzesAnchor')
       if (qz) {
-        // одна точка: тайтл Quizzes на 118 — блоки приезжают сюда УЖЕ раскрытыми (разлёт на подъезде)
-        pts.push(Math.max(0, Math.round(qz.getBoundingClientRect().top + scroller.scrollTop - 118)))
+        // Quizzes снапится на 40px выше остальных (тайтл на 78, не 118) — больше места блокам
+        pts.push(Math.max(0, Math.round(qz.getBoundingClientRect().top + scroller.scrollTop - 78)))
       }
       const mr = document.getElementById('mirrorsAnchor')
       if (mr) pts.push(Math.max(0, Math.round(mr.getBoundingClientRect().top + scroller.scrollTop - 118)))
@@ -314,7 +314,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           // тень на НЕобрезанной обёртке — clip-path внутри, иначе он срезает свой drop-shadow
           filter: 'drop-shadow(0px 2px 42px rgba(0,0,0,0.10))',
           transformOrigin: 'center center',
-          transition: 'transform 180ms ease',
+          transition: 'transform 150ms ease',
           transform: platePressed ? 'scaleX(1.04) scaleY(0.9)' : 'scaleX(1) scaleY(1)',
         }}
       >
@@ -685,7 +685,7 @@ function Pressable({
   style?: React.CSSProperties
 }) {
   const [pressed, setPressed] = useState(false)
-  const t = pressed ? (squash ? 'scaleX(1.05) scaleY(0.9)' : 'scale(0.95)') : 'scale(1)'
+  const t = pressed ? (squash ? 'scaleX(1.05) scaleY(0.9)' : 'scale(0.96)') : 'scale(1)'
   return (
     // @ts-ignore — web-only
     <div
@@ -693,7 +693,7 @@ function Pressable({
       onPointerUp={() => setPressed(false)}
       onPointerCancel={() => setPressed(false)}
       onPointerLeave={() => setPressed(false)}
-      style={{ transformOrigin: 'center center', transition: 'transform 170ms ease', ...style, transform: t }}
+      style={{ transformOrigin: 'center center', transition: 'transform 150ms ease', ...style, transform: t }}
     >
       {children}
     </div>

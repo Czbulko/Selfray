@@ -83,8 +83,7 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
     setTimeout(() => setFlown(null), FLY_MS)
   }
   const open = () => {
-    setPulse(true)
-    setTimeout(() => setPulse(false), 170)
+    // нажатие теперь даёт press-hold (onDown/onUp), здесь — только действие открытия
     // eslint-disable-next-line no-console
     console.log('open card:', CARDS[order[0]].title)
   }
@@ -93,6 +92,7 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
     dragging.current = true
     startX.current = e.clientX
     activeEl.current = e.currentTarget
+    setPulse(true) // press-feedback (как у Pressable): сжатие на нажатии
   }
   const onMove = (e: any) => {
     if (!dragging.current) return
@@ -102,6 +102,7 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
   const onUp = () => {
     if (!dragging.current) return
     dragging.current = false
+    setPulse(false)
     const d = dragX.current
     dragX.current = 0
     if (Math.abs(d) > THRESHOLD) leaf(d > 0 ? 1 : -1)
@@ -130,7 +131,7 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
               zIndex: 50,
             }
           } else {
-            s = { transform: `scale(${pulse ? 0.96 : 1})`, transition: 'transform 170ms ease', zIndex: 50 }
+            s = { transform: `scale(${pulse ? 0.96 : 1})`, transition: 'transform 150ms ease', zIndex: 50 }
           }
         } else {
           s = {
