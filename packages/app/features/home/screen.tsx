@@ -38,8 +38,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     return () => window.removeEventListener('resize', apply)
   }, [])
   return (
-    // @ts-ignore — web <div> обёртка (сдвиг 0; полоса сверху решена цвет-матчем статус-бара)
-    <div style={{ marginTop: 0 }}>
+    // @ts-ignore — web <div> обёртка: тянем весь интерфейс на 62px вверх под статус-бар
+    <div style={{ marginTop: -62 }}>
     <YStack
       position="relative"
       width={DESIGN_WIDTH}
