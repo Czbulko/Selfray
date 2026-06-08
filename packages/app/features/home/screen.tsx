@@ -38,39 +38,52 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     return () => window.removeEventListener('resize', apply)
   }, [])
 
-  // ПОСТРАНИЧНЫЙ переход (без нативного скролла → без инерции и отскоков).
-  // Свайп вверх → один плавный долёт трансформом к секции Explore (тайтл на 118px от верха),
-  // свайп вниз → обратно к герою. Никакого native momentum/bounce.
-  const trackRef = useRef<HTMLDivElement>(null)
+  // СНАП на НАТИВНОМ скролле (страница заполняет экран — никакой подложки).
+  // На отрыве пальца: мгновенно гасим инерцию iOS (overflow:hidden на миг) и сами
+  // плавно догоняем скролл до точки (верх ИЛИ Explore@118) — один долёт, без отскока.
   const pageRef = useRef(0)
-  const offsetsRef = useRef<number[]>([0, 0])
   useEffect(() => {
-    const track = trackRef.current
-    if (!track) return
-    const EASE = 'transform 560ms cubic-bezier(0.22, 1, 0.36, 1)'
+    const scroller = (document.scrollingElement || document.documentElement) as HTMLElement
+    const htmlEl = document.documentElement
+    let animating = false
 
-    const apply = (animate: boolean) => {
-      track.style.transition = animate ? EASE : 'none'
-      track.style.transform = `translate3d(0, ${-offsetsRef.current[pageRef.current]}px, 0)`
-    }
-    const measure = () => {
+    const points = () => {
       const el = document.getElementById('exploreAnchor')
-      if (!el) return
-      const cur = offsetsRef.current[pageRef.current]
-      // позиция Explore в окне при ТЕКУЩЕМ сдвиге → возвращаем к натуральной (+cur) → целимся в 118
-      const offset1 = Math.max(0, Math.round(el.getBoundingClientRect().top + cur - 118))
-      offsetsRef.current = [0, offset1]
-      apply(false)
+      const pts = [0]
+      if (el) pts.push(Math.max(0, Math.round(el.getBoundingClientRect().top + scroller.scrollTop - 118)))
+      return pts
     }
-    const goTo = (p: number) => {
-      const np = Math.max(0, Math.min(offsetsRef.current.length - 1, p))
-      if (np === pageRef.current) return
+    const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
+
+    const glide = (target: number) => {
+      const start = scroller.scrollTop
+      if (Math.abs(target - start) < 2) return
+      animating = true
+      const prev = htmlEl.style.overflow
+      htmlEl.style.overflow = 'hidden' // мгновенно убивает инерцию/резину iOS
+      const dur = 480
+      const t0 = performance.now()
+      const step = (now: number) => {
+        const p = Math.min(1, (now - t0) / dur)
+        scroller.scrollTop = Math.round(start + (target - start) * ease(p))
+        if (p < 1) requestAnimationFrame(step)
+        else {
+          htmlEl.style.overflow = prev
+          animating = false
+        }
+      }
+      requestAnimationFrame(step)
+    }
+    const goDir = (dir: number) => {
+      const pts = points()
+      const np = Math.max(0, Math.min(pts.length - 1, pageRef.current + dir))
       pageRef.current = np
-      apply(true)
+      glide(pts[np])
     }
 
     let sx = 0, sy = 0, decided: 'none' | 'v' | 'h' = 'none', active = false
     const onTS = (e: TouchEvent) => {
+      if (animating) return
       const t = e.touches[0]; sx = t.clientX; sy = t.clientY; decided = 'none'; active = true
     }
     const onTM = (e: TouchEvent) => {
@@ -84,24 +97,21 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       if (decided !== 'v') return // горизонталь = свайп карточек, страницу не трогаем
       const dy = e.changedTouches[0].clientY - sy
       if (Math.abs(dy) < 36) return
-      goTo(pageRef.current + (dy < 0 ? 1 : -1))
+      goDir(dy < 0 ? 1 : -1)
     }
 
     let wheelLock = false
     const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) < 8 || wheelLock) return
-      wheelLock = true; setTimeout(() => { wheelLock = false }, 640)
-      goTo(pageRef.current + (e.deltaY > 0 ? 1 : -1))
+      if (Math.abs(e.deltaY) < 8 || wheelLock || animating) return
+      wheelLock = true; setTimeout(() => { wheelLock = false }, 560)
+      goDir(e.deltaY > 0 ? 1 : -1)
     }
 
-    measure()
-    window.addEventListener('resize', measure)
     window.addEventListener('touchstart', onTS, { passive: true })
     window.addEventListener('touchmove', onTM, { passive: true })
     window.addEventListener('touchend', onTE, { passive: true })
     window.addEventListener('wheel', onWheel, { passive: true })
     return () => {
-      window.removeEventListener('resize', measure)
       window.removeEventListener('touchstart', onTS)
       window.removeEventListener('touchmove', onTM)
       window.removeEventListener('touchend', onTE)
@@ -110,12 +120,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
   }, [zoom])
 
   return (
-    // @ts-ignore — фикс-вьюпорт без нативного скролла: страницы листаются трансформом трека
-    <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', touchAction: 'pan-x' }}>
-      {/* @ts-ignore — трек: его и двигаем translate3d одним плавным долётом */}
-      <div ref={trackRef} style={{ willChange: 'transform' }}>
-        {/* @ts-ignore — web <div> обёртка: тянем весь интерфейс на 62px вверх под статус-бар */}
-        <div style={{ marginTop: -62 }}>
+    // @ts-ignore — web <div> обёртка: тянем весь интерфейс на 62px вверх под статус-бар
+    <div style={{ marginTop: -62 }}>
     <YStack
       position="relative"
       width={DESIGN_WIDTH}
@@ -457,8 +463,6 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         style={{ position: 'absolute', top: 84, right: 28, width: 44, height: 44, zIndex: 2 }}
       />
     </YStack>
-        </div>
-      </div>
     </div>
   )
 }
