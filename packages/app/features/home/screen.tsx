@@ -631,9 +631,9 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
               </svg>
             </div>
           </div>
-          {/* Вопрос: лево 82 / право 62 от краёв экрана (внутри блока 54/34), левый флаг, по центру вертикали */}
+          {/* Вопрос: лево 82 от экрана (внутри блока 54), правая граница = 40px до стрелки (стрелка левым краем на 38 → right 78) */}
           {/* @ts-ignore — web-only */}
-          <div style={{ position: 'absolute', left: 54, right: 34, top: 0, bottom: 0, display: 'flex', alignItems: 'center', zIndex: 3, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', left: 54, right: 78, top: 0, bottom: 0, display: 'flex', alignItems: 'center', zIndex: 3, pointerEvents: 'none' }}>
             <Text fontFamily="$body" fontWeight="500" fontSize={17} lineHeight={22} letterSpacing={0} color="#41474F">
               {QUIZ_QUESTIONS[i]}
             </Text>
