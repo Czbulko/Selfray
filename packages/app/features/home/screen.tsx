@@ -189,7 +189,6 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       mirOff = mr ? mr.getBoundingClientRect().top + st - 118 : qc + 553
     }
     const apply = () => {
-      raf = 0
       if (!blocks.length) return
       const st = scroller.scrollTop
       // только раскрытие на подъезде Explore→Quizzes; дальше остаётся раскрытым (НЕ схлопываем — иначе дыра)
@@ -200,19 +199,25 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         blocks[i].style.transform = `translateY(${ty.toFixed(2)}px) scale(${sc.toFixed(4)})`
       }
     }
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(apply)
+    // непрерывный rAF (плавно на iOS, где scroll-события батчатся): обновляем при изменении scrollTop
+    let last = -1
+    const frame = () => {
+      const st = scroller.scrollTop
+      if (st !== last) {
+        last = st
+        apply()
+      }
+      raf = requestAnimationFrame(frame)
     }
     const onResize = () => {
       measure()
-      apply()
+      last = -1
     }
     measure()
     apply()
-    window.addEventListener('scroll', onScroll, { passive: true })
+    raf = requestAnimationFrame(frame)
     window.addEventListener('resize', onResize)
     return () => {
-      window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onResize)
       if (raf) cancelAnimationFrame(raf)
     }
@@ -248,26 +253,31 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       }
     }
     const apply = () => {
-      raf = 0
       const st = scroller.scrollTop
       const f1 = exSnap > 0 ? Math.max(0, Math.min(1, 1 - st / exSnap)) : 0 // 1 на герое → 0 у Explore
       const f2 = qzSnap > exSnap ? Math.max(0, Math.min(1, (qzSnap - st) / (qzSnap - exSnap))) : 0 // 1 у Explore → 0 у Quizzes
       setTeaser(exEls, f1)
       setTeaser(qzEls, f2)
     }
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(apply)
+    // непрерывный rAF (плавно на iOS): обновляем при изменении scrollTop
+    let last = -1
+    const frame = () => {
+      const st = scroller.scrollTop
+      if (st !== last) {
+        last = st
+        apply()
+      }
+      raf = requestAnimationFrame(frame)
     }
     const onResize = () => {
       measure()
-      apply()
+      last = -1
     }
     measure()
     apply()
-    window.addEventListener('scroll', onScroll, { passive: true })
+    raf = requestAnimationFrame(frame)
     window.addEventListener('resize', onResize)
     return () => {
-      window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onResize)
       if (raf) cancelAnimationFrame(raf)
     }
@@ -289,7 +299,6 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 50 : 530
     }
     const apply = () => {
-      raf = 0
       const btn = document.getElementById('chatBtn')
       if (!btn) return
       const z = window.innerWidth / DESIGN_WIDTH
@@ -298,22 +307,29 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       const ENTRANCE = 170 // глубоко за нижним краем (хватает и на высоких экранах)
       const target = window.innerHeight - 40 - 56 * z + (1 - progress) * ENTRANCE // низ кнопки в 40px от края
       const ty = (target - (naturalTop - scroller.scrollTop)) / z
-      btn.style.transform = `translateY(${ty.toFixed(1)}px)`
+      btn.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0)`
       btn.style.pointerEvents = progress > 0.5 ? 'auto' : 'none'
     }
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(apply)
+    // Непрерывный rAF-цикл: на iOS scroll-события во время инерции батчатся (рывки),
+    // а чтение scrollTop каждый кадр трекает скролл плавно. Обновляем только при изменении.
+    let last = -1
+    const frame = () => {
+      const st = scroller.scrollTop
+      if (st !== last) {
+        last = st
+        apply()
+      }
+      raf = requestAnimationFrame(frame)
     }
     const onResize = () => {
       measure()
-      apply()
+      last = -1
     }
     measure()
     apply()
-    window.addEventListener('scroll', onScroll, { passive: true })
+    raf = requestAnimationFrame(frame)
     window.addEventListener('resize', onResize)
     return () => {
-      window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onResize)
       if (raf) cancelAnimationFrame(raf)
     }
