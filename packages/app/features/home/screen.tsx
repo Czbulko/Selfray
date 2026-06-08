@@ -210,7 +210,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         fontSize={58}
         lineHeight={48}
         letterSpacing={-0.5}
-        color="#FFFFFF"
+        color="rgba(255,255,255,0.6)"
         textAlign="left"
         // @ts-ignore — web-only позиционирование
         style={{ position: 'absolute', top: 200, left: 28, right: 28, zIndex: 2, whiteSpace: 'nowrap' }}
@@ -240,7 +240,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         fontSize={58}
         lineHeight={48}
         letterSpacing={-0.5}
-        color="#FFFFFF"
+        color="rgba(255,255,255,0.6)"
         textAlign="center"
         // @ts-ignore — web-only позиционирование
         style={{ position: 'absolute', top: 302, left: 28, right: 28, zIndex: 2, whiteSpace: 'nowrap' }}
@@ -561,13 +561,13 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
               position: 'absolute',
               inset: 0,
               clipPath: QUIZ_SQUIRCLE,
-              WebkitBackdropFilter: 'blur(36px)',
-              backdropFilter: 'blur(36px)',
+              WebkitBackdropFilter: 'blur(37px)',
+              backdropFilter: 'blur(37px)',
             }}
           />
           {/* белая плашка 80% + тень (drop-shadow на НЕобрезанной обёртке = тень по форме squircle) */}
           <div style={{ position: 'absolute', inset: 0, filter: 'drop-shadow(0px 8px 22px rgba(2,1,10,0.08))' }}>
-            <div style={{ position: 'absolute', inset: 0, clipPath: QUIZ_SQUIRCLE, backgroundColor: 'rgba(255,255,255,0.8)' }}>
+            <div style={{ position: 'absolute', inset: 0, clipPath: QUIZ_SQUIRCLE, backgroundColor: 'rgba(239,234,230,0.8)' }}>
               <svg
                 width={346}
                 height={88}
