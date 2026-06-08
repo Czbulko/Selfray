@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Text, YStack } from '@my/ui'
 import { RotatingSubtitle } from './RotatingSubtitle'
 import { ExesDeck } from './ExesDeck'
@@ -38,64 +38,84 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     return () => window.removeEventListener('resize', apply)
   }, [])
 
-  // Скролл-снап: после окончания жеста подскраливаем к ближайшей точке —
-  // верх (герой) ИЛИ секция Explore так, чтобы её тайтл встал на 118px от верха экрана.
+  // ПОСТРАНИЧНЫЙ переход (без нативного скролла → без инерции и отскоков).
+  // Свайп вверх → один плавный долёт трансформом к секции Explore (тайтл на 118px от верха),
+  // свайп вниз → обратно к герою. Никакого native momentum/bounce.
+  const trackRef = useRef<HTMLDivElement>(null)
+  const pageRef = useRef(0)
+  const offsetsRef = useRef<number[]>([0, 0])
   useEffect(() => {
-    const SNAP_OFFSET = 118
-    let snapping = false
-    let endTimer = 0 as any
+    const track = trackRef.current
+    if (!track) return
+    const EASE = 'transform 560ms cubic-bezier(0.22, 1, 0.36, 1)'
 
-    const targets = () => {
+    const apply = (animate: boolean) => {
+      track.style.transition = animate ? EASE : 'none'
+      track.style.transform = `translate3d(0, ${-offsetsRef.current[pageRef.current]}px, 0)`
+    }
+    const measure = () => {
       const el = document.getElementById('exploreAnchor')
-      const pts = [0]
-      if (el) {
-        const exY = el.getBoundingClientRect().top + window.scrollY
-        pts.push(Math.max(0, Math.round(exY - SNAP_OFFSET)))
-      }
-      return pts
+      if (!el) return
+      const cur = offsetsRef.current[pageRef.current]
+      // позиция Explore в окне при ТЕКУЩЕМ сдвиге → возвращаем к натуральной (+cur) → целимся в 118
+      const offset1 = Math.max(0, Math.round(el.getBoundingClientRect().top + cur - 118))
+      offsetsRef.current = [0, offset1]
+      apply(false)
     }
-    const nearest = (y: number, pts: number[]) =>
-      pts.reduce((a, b) => (Math.abs(b - y) < Math.abs(a - y) ? b : a), pts[0])
-
-    const doSnap = () => {
-      if (snapping) return
-      const pts = targets()
-      const y = window.scrollY
-      const t = nearest(y, pts)
-      if (Math.abs(t - y) < 2) return
-      snapping = true
-      window.scrollTo({ top: t, behavior: 'smooth' })
-      const t0 = performance.now()
-      const settle = () => {
-        if (Math.abs(window.scrollY - t) < 2 || performance.now() - t0 > 900) {
-          snapping = false
-          return
-        }
-        requestAnimationFrame(settle)
-      }
-      requestAnimationFrame(settle)
+    const goTo = (p: number) => {
+      const np = Math.max(0, Math.min(offsetsRef.current.length - 1, p))
+      if (np === pageRef.current) return
+      pageRef.current = np
+      apply(true)
     }
 
-    const onScroll = () => {
-      if (snapping) return
-      clearTimeout(endTimer)
-      endTimer = setTimeout(doSnap, 90) // ждём паузу в событиях = конец инерции
+    let sx = 0, sy = 0, decided: 'none' | 'v' | 'h' = 'none', active = false
+    const onTS = (e: TouchEvent) => {
+      const t = e.touches[0]; sx = t.clientX; sy = t.clientY; decided = 'none'; active = true
     }
-    const onScrollEnd = () => {
-      if (!snapping) doSnap()
+    const onTM = (e: TouchEvent) => {
+      if (!active || decided !== 'none') return
+      const t = e.touches[0], dx = t.clientX - sx, dy = t.clientY - sy
+      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) decided = Math.abs(dy) > Math.abs(dx) ? 'v' : 'h'
     }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('scrollend', onScrollEnd)
+    const onTE = (e: TouchEvent) => {
+      if (!active) return
+      active = false
+      if (decided !== 'v') return // горизонталь = свайп карточек, страницу не трогаем
+      const dy = e.changedTouches[0].clientY - sy
+      if (Math.abs(dy) < 36) return
+      goTo(pageRef.current + (dy < 0 ? 1 : -1))
+    }
+
+    let wheelLock = false
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) < 8 || wheelLock) return
+      wheelLock = true; setTimeout(() => { wheelLock = false }, 640)
+      goTo(pageRef.current + (e.deltaY > 0 ? 1 : -1))
+    }
+
+    measure()
+    window.addEventListener('resize', measure)
+    window.addEventListener('touchstart', onTS, { passive: true })
+    window.addEventListener('touchmove', onTM, { passive: true })
+    window.addEventListener('touchend', onTE, { passive: true })
+    window.addEventListener('wheel', onWheel, { passive: true })
     return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('scrollend', onScrollEnd)
-      clearTimeout(endTimer)
+      window.removeEventListener('resize', measure)
+      window.removeEventListener('touchstart', onTS)
+      window.removeEventListener('touchmove', onTM)
+      window.removeEventListener('touchend', onTE)
+      window.removeEventListener('wheel', onWheel)
     }
-  }, [])
+  }, [zoom])
 
   return (
-    // @ts-ignore — web <div> обёртка: тянем весь интерфейс на 62px вверх под статус-бар
-    <div style={{ marginTop: -62 }}>
+    // @ts-ignore — фикс-вьюпорт без нативного скролла: страницы листаются трансформом трека
+    <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', touchAction: 'pan-x' }}>
+      {/* @ts-ignore — трек: его и двигаем translate3d одним плавным долётом */}
+      <div ref={trackRef} style={{ willChange: 'transform' }}>
+        {/* @ts-ignore — web <div> обёртка: тянем весь интерфейс на 62px вверх под статус-бар */}
+        <div style={{ marginTop: -62 }}>
     <YStack
       position="relative"
       width={DESIGN_WIDTH}
@@ -437,6 +457,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         style={{ position: 'absolute', top: 84, right: 28, width: 44, height: 44, zIndex: 2 }}
       />
     </YStack>
+        </div>
+      </div>
     </div>
   )
 }
