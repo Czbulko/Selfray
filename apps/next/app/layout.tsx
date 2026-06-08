@@ -45,7 +45,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               // иначе виден светлый шов над градиентом
               'html,body{background:#928EB1 !important;}' +
               // свайп карты вбок не должен таскать страницу: режем горизонтальный скролл/оверскролл
-              'html,body{overflow-x:hidden;overscroll-behavior-x:none;}',
+              'html,body{overflow-x:hidden;overscroll-behavior-x:none;}' +
+              // НАТИВНЫЙ снап секций по вертикали (плавно/надёжно на iOS). Точки — на якорях (scroll-snap-align).
+              'html{scroll-snap-type:y proximity;}',
           }}
         />
       </head>

@@ -75,97 +75,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     return () => window.removeEventListener('resize', apply)
   }, [])
 
-  // СНАП на НАТИВНОМ скролле (страница заполняет экран — никакой подложки).
-  // На отрыве пальца: мгновенно гасим инерцию iOS (overflow:hidden на миг) и сами
-  // плавно догоняем скролл до точки (верх ИЛИ Explore@118) — один долёт, без отскока.
-  const pageRef = useRef(0)
-  useEffect(() => {
-    const scroller = (document.scrollingElement || document.documentElement) as HTMLElement
-    let animating = false
-
-    const points = () => {
-      const pts = [0]
-      const ex = document.getElementById('exploreAnchor')
-      // Explore снапится на 70 от топа (выше, ближе к навбару ~62)
-      if (ex) pts.push(Math.max(0, Math.round(ex.getBoundingClientRect().top + scroller.scrollTop - 50)))
-      const qz = document.getElementById('quizzesAnchor')
-      if (qz) {
-        // Quizzes снапится так, чтобы тайтл встал на 82 от топа (заезжает под шапку)
-        pts.push(Math.max(0, Math.round(qz.getBoundingClientRect().top + scroller.scrollTop - 62)))
-      }
-      const mr = document.getElementById('mirrorsAnchor')
-      if (mr) pts.push(Math.max(0, Math.round(mr.getBoundingClientRect().top + scroller.scrollTop - 98)))
-      return pts.sort((a, b) => a - b)
-    }
-
-    const glide = (target: number) => {
-      const start = scroller.scrollTop
-      if (Math.abs(target - start) < 2) return
-      animating = true
-      // Нативный плавный скролл (надёжно доезжает на iOS, гасит инерцию).
-      try {
-        scroller.scrollTo({ top: target, behavior: 'smooth' })
-      } catch {
-        scroller.scrollTop = target
-      }
-      // ДОЖИМ после анимации: гарантированно держим цель (борьба с недолётом/остаточной инерцией iOS),
-      // пока юзер не начал новый жест.
-      let n = 0
-      const ensure = () => {
-        if (active) {
-          animating = false
-          return
-        }
-        if (Math.abs(scroller.scrollTop - target) > 1) scroller.scrollTop = target
-        if (++n < 6) setTimeout(ensure, 80)
-        else animating = false
-      }
-      setTimeout(ensure, 620)
-    }
-    const goDir = (dir: number) => {
-      const pts = points()
-      const np = Math.max(0, Math.min(pts.length - 1, pageRef.current + dir))
-      pageRef.current = np
-      glide(pts[np])
-    }
-
-    let sx = 0, sy = 0, decided: 'none' | 'v' | 'h' = 'none', active = false
-    const onTS = (e: TouchEvent) => {
-      if (animating) return
-      const t = e.touches[0]; sx = t.clientX; sy = t.clientY; decided = 'none'; active = true
-    }
-    const onTM = (e: TouchEvent) => {
-      if (!active || decided !== 'none') return
-      const t = e.touches[0], dx = t.clientX - sx, dy = t.clientY - sy
-      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) decided = Math.abs(dy) > Math.abs(dx) ? 'v' : 'h'
-    }
-    const onTE = (e: TouchEvent) => {
-      if (!active) return
-      active = false
-      if (decided !== 'v') return // горизонталь = свайп карточек, страницу не трогаем
-      const dy = e.changedTouches[0].clientY - sy
-      if (Math.abs(dy) < 36) return
-      goDir(dy < 0 ? 1 : -1)
-    }
-
-    let wheelLock = false
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) < 8 || wheelLock || animating) return
-      wheelLock = true; setTimeout(() => { wheelLock = false }, 560)
-      goDir(e.deltaY > 0 ? 1 : -1)
-    }
-
-    window.addEventListener('touchstart', onTS, { passive: true })
-    window.addEventListener('touchmove', onTM, { passive: true })
-    window.addEventListener('touchend', onTE, { passive: true })
-    window.addEventListener('wheel', onWheel, { passive: true })
-    return () => {
-      window.removeEventListener('touchstart', onTS)
-      window.removeEventListener('touchmove', onTM)
-      window.removeEventListener('touchend', onTE)
-      window.removeEventListener('wheel', onWheel)
-    }
-  }, [zoom])
+  // Снап теперь НАТИВНЫЙ — CSS scroll-snap (см. scroll-snap-align/scroll-margin-top на якорях
+  // и scroll-snap-type на html в layout). Браузер делает его на композиторе: плавно и надёжно на iOS.
 
   // Раскрытие стека Quizzes «гармошкой» (iOS notification-center), завязано на скролл.
   // ТЕНТ: p=0 на Explore → p=1 на Quizzes (раскрытие на подъезде) → p=0 на Mirrors (схлопывание при свайпе дальше).
@@ -352,6 +263,10 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         alt=""
         style={{ display: 'block', width: '100%', height: 'auto' }}
       />
+      {/* Снап-якорь героя (верх страницы) для CSS scroll-snap */}
+      {/* @ts-ignore — web-only */}
+      <div style={{ position: 'absolute', top: 0, left: 0, width: 1, height: 1, scrollSnapAlign: 'start' }} />
+
       {/* спейсер: продлевает прокрутку ниже PNG (на фоне YStack-градиента), чтобы Mirrors доезжал до снапа */}
       {/* @ts-ignore — web in-flow spacer */}
       <div style={{ width: '100%', height: 330 }} />
@@ -656,8 +571,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         color="#FFFFFF"
         textAlign="center"
         id="exploreAnchor"
-        // @ts-ignore — web-only позиционирование (якорь JS-снапа)
-        style={{ position: 'absolute', top: 759, left: 28, right: 28, zIndex: 2 }}
+        // @ts-ignore — web-only + CSS-снап: тайтл встаёт на ~50 от верха
+        style={{ position: 'absolute', top: 759, left: 28, right: 28, zIndex: 2, scrollSnapAlign: 'start', scrollMarginTop: 50 }}
       >
         Explore X-Rays
       </Text>
@@ -712,8 +627,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         color="#FFFFFF"
         textAlign="center"
         id="quizzesAnchor"
-        // @ts-ignore — web-only позиционирование (якорь JS-снапа)
-        style={{ position: 'absolute', top: 1408, left: 28, right: 28, zIndex: 2 }}
+        // @ts-ignore — web-only + CSS-снап: тайтл встаёт на ~62 от верха
+        style={{ position: 'absolute', top: 1408, left: 28, right: 28, zIndex: 2, scrollSnapAlign: 'start', scrollMarginTop: 62 }}
       >
         Quizzes
       </Text>
@@ -826,8 +741,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         color="#FFFFFF"
         textAlign="center"
         id="mirrorsAnchor"
-        // @ts-ignore — web-only позиционирование (якорь JS-снапа)
-        style={{ position: 'absolute', top: 2054, left: 28, right: 28, zIndex: 2 }}
+        // @ts-ignore — web-only + CSS-снап: тайтл встаёт на ~98 от верха
+        style={{ position: 'absolute', top: 2054, left: 28, right: 28, zIndex: 2, scrollSnapAlign: 'start', scrollMarginTop: 98 }}
       >
         Mirrors
       </Text>
