@@ -832,18 +832,16 @@ function MirrorsCarousel() {
           <div key={i} style={cardStyle(i)}>
             <Pressable style={{ position: 'absolute', inset: 0 }}>
               <MirrorGlass />
-              {/* @ts-ignore — тайтл + сабхедер по центру карточки */}
+              {/* @ts-ignore — тайтл на 28px от верха карточки, сабхедер 8px ниже; по центру по горизонтали */}
               <div
                 style={{
                   position: 'absolute',
                   left: 20,
                   right: 20,
-                  top: 0,
-                  bottom: 0,
+                  top: 28,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  justifyContent: 'center',
                   zIndex: 3,
                   pointerEvents: 'none',
                 }}
