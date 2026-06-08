@@ -44,6 +44,16 @@ const MIRROR_SQUIRCLE_D =
   'M 202 0 c 16.8016 0 25.2024 0 31.6197 3.2698 a 30 30 0 0 1 13.1105 13.1105 c 3.2698 6.4174 3.2698 14.8181 3.2698 31.6197 L 250 312 c 0 16.8016 0 25.2024 -3.2698 31.6197 a 30 30 0 0 1 -13.1105 13.1105 c -6.4174 3.2698 -14.8181 3.2698 -31.6197 3.2698 L 48 360 c -16.8016 0 -25.2024 0 -31.6197 -3.2698 a 30 30 0 0 1 -13.1105 -13.1105 c -3.2698 -6.4174 -3.2698 -14.8181 -3.2698 -31.6197 L 0 48 c 0 -16.8016 0 -25.2024 3.2698 -31.6197 a 30 30 0 0 1 13.1105 -13.1105 c 6.4174 -3.2698 14.8181 -3.2698 31.6197 -3.2698 Z'
 const MIRROR_SQUIRCLE = `path('${MIRROR_SQUIRCLE_D}')`
 
+// 6 зеркал (тайтл + сабхедер внутри карточки)
+const MIRRORS = [
+  { t: 'Inner Child', s: 'Meet the part of you still waiting to be seen.' },
+  { t: 'Shadow Self', s: 'See the side you keep out of frame.' },
+  { t: 'Soul Mandala', s: 'Your inner world, drawn as one pattern.' },
+  { t: 'Anxiety Creature', s: 'Give the dread a face you can look at.' },
+  { t: 'Hidden Archetype', s: 'The figure you’ve been all along.' },
+  { t: 'Emotional Imprint', s: 'See what the week actually left on you.' },
+]
+
 // Переливания CTA: текст-градиент бежит, белый блик ходит туда-сюда.
 const CTA_KEYFRAMES = `
 @keyframes ctaTextShimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
@@ -733,7 +743,7 @@ function Pressable({
 // Коверфлоу-листалка Mirrors: центр + по 2 карты с каждой стороны (перспектива).
 // Листается свайпом по картам И слайдером-таблеткой снизу (бегунок = текущая карта).
 function MirrorsCarousel() {
-  const N = 7
+  const N = MIRRORS.length
   const [idx, setIdx] = useState(0) // дефолт — первая карта по центру
   const clamp = (v: number) => Math.max(0, Math.min(N - 1, v))
   const go = (d: number) => setIdx((v) => clamp(v + d))
@@ -822,6 +832,38 @@ function MirrorsCarousel() {
           <div key={i} style={cardStyle(i)}>
             <Pressable style={{ position: 'absolute', inset: 0 }}>
               <MirrorGlass />
+              {/* @ts-ignore — тайтл + сабхедер по центру карточки */}
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 20,
+                  right: 20,
+                  top: 0,
+                  bottom: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 3,
+                  pointerEvents: 'none',
+                }}
+              >
+                <Text fontFamily="$heading" fontWeight="900" fontSize={22} lineHeight={28} letterSpacing={0} color="#41474F" textAlign="center">
+                  {MIRRORS[i].t}
+                </Text>
+                <Text
+                  fontFamily="$body"
+                  fontWeight="500"
+                  fontSize={17}
+                  lineHeight={22}
+                  letterSpacing={0}
+                  color="#41474F"
+                  textAlign="center"
+                  marginTop={8}
+                >
+                  {MIRRORS[i].s}
+                </Text>
+              </div>
             </Pressable>
           </div>
         ))}
