@@ -58,12 +58,28 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
   const dragging = useRef(false)
   const startX = useRef(0)
   const dragX = useRef(0)
+  const activeEl = useRef<HTMLDivElement | null>(null) // верхняя карта (для WAAPI-полёта из позиции пальца)
 
   const leaf = (dir: number) => {
     const topId = order[0]
+    const el = activeEl.current
+    const f = dir > 0 ? 1 : -1
+    // стартуем полёт ИЗ ТЕКУЩЕЙ позиции пальца, иначе CSS-анимация прыгала бы из 0 (баунс назад в колоду)
+    const startTf = (el && el.style.transform) || 'translate(0px,0px)'
     setDrag(0)
     setFlown({ id: topId, dir })
     setOrder((o) => [...o.slice(1), o[0]]) // следующая поднимается наверх сразу
+    if (el && el.animate) {
+      el.animate(
+        [
+          { transform: startTf, zIndex: 100, offset: 0 },
+          { transform: `translate(${f * 470}px,-20px) rotateY(${f * 36}deg) rotate(${f * 15}deg)`, zIndex: 100, offset: 0.45 },
+          { transform: `translate(${f * 455}px,-16px) rotateY(${f * 34}deg) rotate(${f * 14}deg)`, zIndex: 0, offset: 0.47 },
+          { transform: 'translate(0px,0px) rotateY(0deg) rotate(10deg)', zIndex: 0, offset: 1 },
+        ],
+        { duration: FLY_MS, easing: 'cubic-bezier(0.4,0,0.35,1)', fill: 'forwards' }
+      )
+    }
     setTimeout(() => setFlown(null), FLY_MS)
   }
   const open = () => {
@@ -76,6 +92,7 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
     if (flown) return
     dragging.current = true
     startX.current = e.clientX
+    activeEl.current = e.currentTarget
   }
   const onMove = (e: any) => {
     if (!dragging.current) return
@@ -103,7 +120,8 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
         const isFlown = !!flown && flown.id === id
         let s: React.CSSProperties
         if (isFlown) {
-          s = { animation: `deckFly${flown!.dir > 0 ? 'R' : 'L'} ${FLY_MS}ms cubic-bezier(0.4,0,0.35,1) forwards` }
+          // полёт ведёт WAAPI (из позиции пальца) — здесь только конечное состояние под колодой
+          s = { transform: 'translate(0px,0px) rotateY(0deg) rotate(10deg)', zIndex: 0 }
         } else if (isTop) {
           if (drag !== 0) {
             s = {
