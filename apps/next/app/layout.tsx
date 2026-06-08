@@ -33,7 +33,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <style
           dangerouslySetInnerHTML={{
             __html:
-              'html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}',
+              'html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}' +
+              // фон под статус-баром/чёлкой и по краям = цвет верха градиента (иначе проступает белый body)
+              'html,body{background:#B1AFD0 !important;}',
           }}
         />
       </head>
