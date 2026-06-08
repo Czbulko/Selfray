@@ -97,34 +97,30 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       if (mr) pts.push(Math.max(0, Math.round(mr.getBoundingClientRect().top + scroller.scrollTop - 118)))
       return pts.sort((a, b) => a - b)
     }
-    const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
 
     const glide = (target: number) => {
       const start = scroller.scrollTop
       if (Math.abs(target - start) < 2) return
       animating = true
-      // НЕ трогаем overflow: на iOS Safari overflow:hidden ломает программный scrollTop (долёт срывается).
-      // Инерция гасится тем, что каждый кадр жёстко выставляем scrollTop.
-      const dur = 480
-      const t0 = performance.now()
-      const step = (now: number) => {
-        const p = Math.min(1, (now - t0) / dur)
-        scroller.scrollTop = Math.round(start + (target - start) * ease(p))
-        if (p < 1) requestAnimationFrame(step)
-        else {
-          scroller.scrollTop = target // жёстко добиваем до цели
-          animating = false
-          // ДОЖИМ против остаточной инерции iOS: ещё несколько раз держим цель (пока юзер не тронул)
-          let n = 0
-          const hold = () => {
-            if (active) return
-            scroller.scrollTop = target
-            if (++n < 6) setTimeout(hold, 55)
-          }
-          setTimeout(hold, 55)
-        }
+      // Нативный плавный скролл (надёжно доезжает на iOS, гасит инерцию).
+      try {
+        scroller.scrollTo({ top: target, behavior: 'smooth' })
+      } catch {
+        scroller.scrollTop = target
       }
-      requestAnimationFrame(step)
+      // ДОЖИМ после анимации: гарантированно держим цель (борьба с недолётом/остаточной инерцией iOS),
+      // пока юзер не начал новый жест.
+      let n = 0
+      const ensure = () => {
+        if (active) {
+          animating = false
+          return
+        }
+        if (Math.abs(scroller.scrollTop - target) > 1) scroller.scrollTop = target
+        if (++n < 6) setTimeout(ensure, 80)
+        else animating = false
+      }
+      setTimeout(ensure, 620)
     }
     const goDir = (dir: number) => {
       const pts = points()
