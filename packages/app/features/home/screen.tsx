@@ -214,6 +214,47 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     }
   }, [zoom])
 
+  // Тизер Explore: на первом экране (внизу) блок виден с blur(4)+opacity 0.7,
+  // к моменту подъезда (Explore-снап) — чёткий и непрозрачный. Завязано на скролл.
+  useEffect(() => {
+    const scroller = (document.scrollingElement || document.documentElement) as HTMLElement
+    let raf = 0
+    let exSnap = 0
+    let els: HTMLElement[] = []
+    const measure = () => {
+      const ex = document.getElementById('exploreAnchor')
+      exSnap = ex ? ex.getBoundingClientRect().top + scroller.scrollTop - 118 : 530
+      els = ['exploreAnchor', 'exploreSub', 'exploreDeck']
+        .map((id) => document.getElementById(id))
+        .filter(Boolean) as HTMLElement[]
+    }
+    const apply = () => {
+      raf = 0
+      if (!els.length || exSnap <= 0) return
+      const f = Math.max(0, Math.min(1, 1 - scroller.scrollTop / exSnap)) // 1 на герое → 0 у Explore
+      for (const el of els) {
+        el.style.filter = f > 0.02 ? `blur(${(4 * f).toFixed(2)}px)` : 'none'
+        el.style.opacity = (1 - 0.3 * f).toFixed(3)
+      }
+    }
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(apply)
+    }
+    const onResize = () => {
+      measure()
+      apply()
+    }
+    measure()
+    apply()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [zoom])
+
   return (
     // @ts-ignore — web <div> обёртка: тянем весь интерфейс на 62px вверх под статус-бар
     <div style={{ marginTop: -62 }}>
@@ -550,6 +591,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         letterSpacing={0}
         color="#FFFFFF"
         textAlign="center"
+        id="exploreSub"
         // @ts-ignore — web-only позиционирование
         style={{ position: 'absolute', top: 803, left: 28, right: 28, zIndex: 2 }}
       >
@@ -557,7 +599,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       </Text>
 
       {/* Колода карточек X-Ray (стек −0/−5/−10°, свайпом листается) — на месте бывшей карточки */}
-      <ExesDeck top={861} left={54} />
+      <ExesDeck top={861} left={54} id="exploreDeck" />
 
       {/* Секция «Quizzes» — 36px от низа предыдущего блока (каунтер: 834+412+20=1266 → 1302) */}
       <Text

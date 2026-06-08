@@ -51,7 +51,7 @@ const DECK_KEYFRAMES = `
 }
 `
 
-export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number }) {
+export function ExesDeck({ top = 834, left = 54, id }: { top?: number; left?: number; id?: string }) {
   const [order, setOrder] = useState<number[]>(() => CARDS.map((_, i) => i))
   const [drag, setDrag] = useState(0)
   const [flown, setFlown] = useState<{ id: number; dir: number } | null>(null)
@@ -119,6 +119,7 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
 
   return (
     <div
+      id={id}
       onPointerDown={onDown}
       onPointerMove={onMove}
       onPointerUp={onUp}
