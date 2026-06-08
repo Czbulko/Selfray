@@ -24,6 +24,7 @@ const CARDS = [
 
 const W = 294
 const H = 388
+const AREA_W = 402 // ширина зоны свайпа = во всю ширину макета (карты остаются по центру)
 const SQUIRCLE_D =
   'M 246 0 c 16.802 0 25.202 0 31.62 3.27 a 30 30 0 0 1 13.11 13.11 c 3.27 6.417 3.27 14.818 3.27 31.62 L 294 340 c 0 16.802 0 25.202 -3.27 31.62 a 30 30 0 0 1 -13.11 13.11 c -6.417 3.27 -14.818 3.27 -31.62 3.27 L 48 388 c -16.802 0 -25.202 0 -31.62 -3.27 a 30 30 0 0 1 -13.11 -13.11 c -3.27 -6.417 -3.27 -14.818 -3.27 -31.62 L 0 48 c 0 -16.802 0 -25.202 3.27 -31.62 a 30 30 0 0 1 13.11 -13.11 c 6.417 -3.27 14.818 -3.27 31.62 -3.27 Z'
 const SQUIRCLE = `path('${SQUIRCLE_D}')`
@@ -59,6 +60,7 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
   const startX = useRef(0)
   const dragX = useRef(0)
   const activeEl = useRef<HTMLDivElement | null>(null) // верхняя карта (для WAAPI-полёта из позиции пальца)
+  const topCardRef = useRef<HTMLDivElement | null>(null) // ссылка на текущую верхнюю карту (свайп с контейнера)
 
   const leaf = (dir: number) => {
     const topId = order[0]
@@ -70,7 +72,8 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
     setFlown({ id: topId, dir })
     setOrder((o) => [...o.slice(1), o[0]]) // следующая поднимается наверх сразу
     if (el && el.animate) {
-      el.animate(
+      el.getAnimations().forEach((a) => a.cancel()) // подчистить прошлый полёт этой карты
+      const anim = el.animate(
         [
           { transform: startTf, zIndex: 100, offset: 0 },
           { transform: `translate(${f * 470}px,-20px) rotateY(${f * 36}deg) rotate(${f * 15}deg)`, zIndex: 100, offset: 0.45 },
@@ -79,6 +82,8 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
         ],
         { duration: FLY_MS, easing: 'cubic-bezier(0.4,0,0.35,1)', fill: 'forwards' }
       )
+      // снять forwards-филл по завершении — иначе при возврате карты наверх на ней залипает старый transform
+      anim.onfinish = () => anim.cancel()
     }
     setTimeout(() => setFlown(null), FLY_MS)
   }
@@ -91,7 +96,7 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
     if (flown) return
     dragging.current = true
     startX.current = e.clientX
-    activeEl.current = e.currentTarget
+    activeEl.current = topCardRef.current // верхняя карта (свайп ловим на всю ширину контейнера)
     setPulse(true) // press-feedback (как у Pressable): сжатие на нажатии
   }
   const onMove = (e: any) => {
@@ -113,7 +118,13 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
   }
 
   return (
-    <div style={{ position: 'absolute', top, left, width: W, height: H, zIndex: 2, perspective: '900px' }}>
+    <div
+      onPointerDown={onDown}
+      onPointerMove={onMove}
+      onPointerUp={onUp}
+      onPointerCancel={onUp}
+      style={{ position: 'absolute', top, left: 0, width: AREA_W, height: H, zIndex: 2, perspective: '900px', touchAction: 'pan-y' }}
+    >
       <style>{DECK_KEYFRAMES}</style>
       {CARDS.map((card, id) => {
         const depth = order.indexOf(id)
@@ -144,18 +155,15 @@ export function ExesDeck({ top = 834, left = 54 }: { top?: number; left?: number
         return (
           <div
             key={id}
-            onPointerDown={isTop && !isFlown ? onDown : undefined}
-            onPointerMove={isTop && !isFlown ? onMove : undefined}
-            onPointerUp={isTop && !isFlown ? onUp : undefined}
-            onPointerCancel={isTop && !isFlown ? onUp : undefined}
+            ref={isTop && !isFlown ? topCardRef : undefined}
             style={{
               position: 'absolute',
-              inset: 0,
+              top: 0,
+              left, // карта по центру (left=54), а зона свайпа — весь контейнер
               width: W,
               height: H,
               transformOrigin: 'center',
               cursor: isTop && !isFlown ? 'grab' : 'default',
-              touchAction: 'pan-y',
               ...s,
             }}
           >
