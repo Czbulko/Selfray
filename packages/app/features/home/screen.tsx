@@ -824,7 +824,31 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         transition: 'transform 380ms cubic-bezier(0.22,1,0.36,1), opacity 280ms ease',
         pointerEvents: fabVisible ? 'auto' : 'none',
       }}
-    />
+    >
+      {/* Два плейсхолдера 27×27: первый top:6/left:16, второй top:6/right:16 (в zoom-px) */}
+      {/* @ts-ignore — web-only */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 6 * zoom,
+          left: 16 * zoom,
+          width: 27 * zoom,
+          height: 27 * zoom,
+          backgroundColor: 'rgba(255,255,255,0.7)',
+        }}
+      />
+      {/* @ts-ignore — web-only */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 6 * zoom,
+          right: 16 * zoom,
+          width: 27 * zoom,
+          height: 27 * zoom,
+          backgroundColor: 'rgba(255,255,255,0.7)',
+        }}
+      />
+    </div>
     </div>
   )
 }
