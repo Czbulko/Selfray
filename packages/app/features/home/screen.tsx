@@ -281,14 +281,15 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
   return (
     // @ts-ignore — внешний статичный контейнер (FAB вне translateY-трека, иначе fixed сломается)
     <div>
-    {/* @ts-ignore — контейнер контента (нативный скролл, без transform) */}
-    <div ref={wrapRef} id="pagerWrap">
+    {/* @ts-ignore — контейнер контента. marginTop:-62 поднимает весь интерфейс на 62px
+        (контент уходит под статус-бар, как в макете) → белой шапки сверху нет. */}
+    <div ref={wrapRef} id="pagerWrap" style={{ marginTop: -62 }}>
     <YStack
       position="relative"
       width={DESIGN_WIDTH}
       // @ts-ignore — zoom + фон = нижний край градиента (lefts blue → right pink), чтобы спейсер снизу
       // продолжал картинку бесшовно (без лавандовой подложки), когда страница длиннее PNG
-      style={{ zoom, background: 'linear-gradient(90deg, rgb(107,142,187) 0%, rgb(166,153,179) 100%)' }}
+      style={{ zoom, background: '#938DB3' }}
     >
       {/* ФОН — длинный PNG во всю ширину, натуральная высота (страница скроллится по нему) */}
       {/* @ts-ignore — web <img> */}
@@ -874,7 +875,7 @@ function MirrorsCarousel() {
   }
 
   // слайдер-таблетка
-  const TRACK = 250
+  const TRACK = 218 // уже на 32px (по 16 с каждого края: 250 -> 218)
   const THUMB = 96
   const PAD = 0 // бегунок встык к краям пилюли
   const travel = TRACK - THUMB - PAD * 2
@@ -986,8 +987,8 @@ function MirrorsCarousel() {
         style={{
           position: 'absolute',
           top: 2624,
-          left: 76,
-          width: 250,
+          left: 92,
+          width: 218,
           height: 44,
           zIndex: 31,
           borderRadius: 22,
@@ -1003,7 +1004,7 @@ function MirrorsCarousel() {
         <div
           style={{
             position: 'absolute',
-            top: 0,
+            top: -1, // тягачку подняли на 1px (съезжала вниз)
             left: thumbLeft,
             width: THUMB,
             height: 44,

@@ -35,8 +35,8 @@ const BLUR = 12 // сила блюра полос (px)
 
 const textBase: React.CSSProperties = {
   position: 'absolute',
-  left: 28,
-  right: 28,
+  left: 36, // сжато на 16px по ширине (по 8 с каждой стороны: 28 -> 36)
+  right: 36,
   top: TOPBLUR, // надпись сидит в верхней части чистого центра
   height: CENTER,
   display: 'flex',
