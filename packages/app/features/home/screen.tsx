@@ -304,9 +304,11 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         alt=""
         style={{ display: 'block', width: '100%', height: 'auto', marginTop: 62 / zoom }}
       />
-      {/* Снап-якорь героя (верх страницы) для CSS scroll-snap */}
+      {/* Снап-якорь героя. top:62/zoom компенсирует marginTop:-62 контейнера (он в screen-px, вне
+          zoom), чтобы якорь стоял РОВНО на старте скролла (document 0). Иначе он оказывался на -62 —
+          невалидная/заклампленная точка снапа, и iOS не доснапывал к герою при свайпе ВВЕРХ. */}
       {/* @ts-ignore — web-only */}
-      <div style={{ position: 'absolute', top: 0, left: 0, width: 1, height: 1, scrollSnapAlign: 'start' }} />
+      <div style={{ position: 'absolute', top: 62 / zoom, left: 0, width: 1, height: 1, scrollSnapAlign: 'start' }} />
 
       {/* спейсер: продлевает прокрутку ниже PNG (на фоне YStack-градиента), чтобы Mirrors доезжал до снапа */}
       {/* @ts-ignore — web in-flow spacer */}
