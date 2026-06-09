@@ -375,7 +375,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         width={18}
         height={18}
         alt=""
-        style={{ position: 'absolute', top: 392, left: 28, width: 18, height: 18, zIndex: 2 }}
+        style={{ position: 'absolute', top: 392, left: 28, width: 18, height: 18, zIndex: 2, opacity: 0.5 }}
       />
       {/* @ts-ignore — web <img> */}
       <img
@@ -383,7 +383,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         width={18}
         height={18}
         alt=""
-        style={{ position: 'absolute', top: 482, right: 28, width: 18, height: 18, zIndex: 2 }}
+        style={{ position: 'absolute', top: 482, right: 28, width: 18, height: 18, zIndex: 2, opacity: 0.5 }}
       />
 
       {/* CTA: rect h98, отступы 28, radius 30, #FAFAFA, shadow 0/2/42 black 10%,
