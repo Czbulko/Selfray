@@ -57,6 +57,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        {/* ФУЛЛСКРИН-ФОН ПОД ВСЕМ. position:fixed со слоем, вылезающим на 20vh за каждый край →
+            рисуется и под полупрозрачным тулбаром Safari, и под чёлкой/home-индикатором.
+            Так в зоне тулбара виден градиент (а не белый чром Safari) — полоса исчезает.
+            zIndex:-1 + pointerEvents:none → строго позади контента, тачи не перехватывает. */}
+        <div
+          aria-hidden
+          style={{
+            position: 'fixed',
+            top: '-20vh',
+            bottom: '-20vh',
+            left: '-10vw',
+            right: '-10vw',
+            zIndex: -1,
+            pointerEvents: 'none',
+            background:
+              'linear-gradient(180deg, rgb(146,142,177) 0%, rgb(140,146,183) 55%, rgb(133,146,185) 100%)',
+          }}
+        />
         <NextTamaguiProvider>{children}</NextTamaguiProvider>
       </body>
     </html>
