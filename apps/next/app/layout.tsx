@@ -52,14 +52,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               // скроллу нижний бар Safari сворачивается → сайт на весь экран, полосы снизу нет.
               // scroll-snap-type:y mandatory + scroll-snap-align:start на тайтлах = чёткая поэкранка.
               // Тряску колоды/карусели глушим через touch-action на самих элементах (см. screen.tsx).
-              // overflow-x:clip режем горизонталь (карты колоды/карусели вылезают за 402px) — но
-              // ТОЛЬКО на body. На <html> любой overflow ломает iOS: фон корня перестаёт затекать
-              // в safe-area под статус-баром → там белая полоса, и весь контент опускается на высоту
-              // safe-area. Поэтому html остаётся overflow:visible (фон затекает под чёлку = лаванда,
-              // и контент поднимается под статус-бар). Горизонтальный скролл всё равно невозможен —
-              // body уже обрезал вылет.
-              'html{scroll-snap-type:y mandatory;overscroll-behavior:none;}' +
-              'body{overflow-x:clip;overscroll-behavior:none;}',
+              // СНАП теперь НЕ на html, а на отдельном контейнере height:100dvh (см. screen.tsx).
+              // <html> держим чистым (overflow:visible, без snap): тогда фон корня затекает в
+              // safe-area под статус-баром (лаванда, без белой полосы) и контент уходит под чёлку.
+              // body не скроллится (скроллит контейнер) → overflow:hidden; root не трогаем.
+              'html{overscroll-behavior:none;}' +
+              'body{overflow:hidden;overscroll-behavior:none;}',
           }}
         />
         {/* Pull-to-refresh / любая перезагрузка должны открывать ПЕРВЫЙ экран (герой). Без этого

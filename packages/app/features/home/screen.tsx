@@ -101,7 +101,9 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
 
     const measure = () => {
       wrap = wrapRef.current
-      const base = window.scrollY || window.pageYOffset || 0
+      // Позиции считаем ОТНОСИТЕЛЬНО снап-контейнера (wrap), а не окна: теперь скроллится он, а не документ.
+      const scTop = wrap ? wrap.getBoundingClientRect().top : 0
+      const base = wrap ? wrap.scrollTop - scTop : 0
       const top = (id: string) => {
         const e = document.getElementById(id)
         return e ? e.getBoundingClientRect().top + base : null
@@ -191,7 +193,10 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     // Эффекты (аккордеон/тизер/FAB) завязаны на ПОЗИЦИЮ НАТИВНОГО СКРОЛЛА. rAF-троттлинг,
     // чтобы не дёргалось на инерции iOS.
     let raf = 0
-    const scrollPos = () => window.scrollY || window.pageYOffset || 0
+    const scrollPos = () => {
+      const sc = wrapRef.current
+      return sc ? sc.scrollTop : 0
+    }
     const onScroll = () => {
       if (raf) return
       raf = requestAnimationFrame(() => {
@@ -219,12 +224,14 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       history.scrollRestoration = 'manual'
     }
     const forceTop = () => {
-      const de = document.documentElement
-      de.style.scrollSnapType = 'none'
-      window.scrollTo(0, 0)
+      const sc = wrapRef.current
+      if (!sc) return
+      sc.style.scrollSnapType = 'none'
+      sc.scrollTop = 0
       requestAnimationFrame(() => {
-        window.scrollTo(0, 0)
-        de.style.scrollSnapType = '' // вернуть к CSS (y mandatory)
+        if (!sc) return
+        sc.scrollTop = 0
+        sc.style.scrollSnapType = 'y mandatory' // вернуть снап (инлайн-стиль — источник правды)
       })
     }
     forceTop()
@@ -263,14 +270,23 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       timers.push(window.setTimeout(forceTop, 250))
       timers.push(window.setTimeout(forceTop, 600))
     }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('scroll', onScrollSettle, { passive: true })
+    // Скролл теперь на КОНТЕЙНЕРе (wrap = 100dvh snap-контейнер), а не на окне.
+    const scroller = wrapRef.current
+    if (scroller) {
+      scroller.addEventListener('scroll', onScroll, { passive: true })
+      scroller.addEventListener('scroll', onScrollSettle, { passive: true })
+    }
     window.addEventListener('resize', onResize)
+    // iOS меняет visualViewport при показе/скрытии тулбара — перемерять и под него.
+    window.visualViewport?.addEventListener('resize', onResize)
     return () => {
       window.removeEventListener('pageshow', onPageShow)
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('scroll', onScrollSettle)
+      if (scroller) {
+        scroller.removeEventListener('scroll', onScroll)
+        scroller.removeEventListener('scroll', onScrollSettle)
+      }
       window.removeEventListener('resize', onResize)
+      window.visualViewport?.removeEventListener('resize', onResize)
       window.removeEventListener('load', remeasure)
       for (const t of timers) clearTimeout(t)
       if (settleTimer) clearTimeout(settleTimer)
@@ -281,8 +297,21 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
   return (
     // @ts-ignore — внешний статичный контейнер (FAB вне translateY-трека, иначе fixed сломается)
     <div>
-    {/* @ts-ignore — контейнер контента. marginTop:-62 поднимает интерфейс под статус-бар. */}
-    <div ref={wrapRef} id="pagerWrap" style={{ marginTop: -62 }}>
+    {/* @ts-ignore — СНАП-КОНТЕЙНЕР: height:100dvh = ровно видимый вьюпорт (а не layout-вьюпорт, как у
+        html на iOS), поэтому снап считается верно и белой щели сверху нет. Скроллится сам контейнер.
+        Контент сам уходит под статус-бар (viewport-fit=cover), marginTop-хак больше не нужен. */}
+    <div
+      ref={wrapRef}
+      id="scroller"
+      style={{
+        height: '100dvh',
+        overflowY: 'auto',
+        overflowX: 'clip',
+        scrollSnapType: 'y mandatory',
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehavior: 'none',
+      }}
+    >
     <YStack
       position="relative"
       width={DESIGN_WIDTH}
