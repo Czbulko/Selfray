@@ -175,7 +175,10 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         for (let i = 0; i < blocks.length; i++) {
           const ty = -QUIZ_FAN * i * (1 - p)
           const sc = 1 - QUIZ_SCALE_STEP * i * (1 - p)
-          blocks[i].style.transform = `translateY(${ty.toFixed(2)}px) scale(${sc.toFixed(4)})`
+          // В покое (transform идентичный) ставим 'none' — иначе transform на .quizBlock ломает
+          // backdrop-filter дочернего слоя (Safari отключает backdrop под трансформированным предком).
+          const iden = Math.abs(ty) < 0.02 && Math.abs(sc - 1) < 0.0005
+          blocks[i].style.transform = iden ? 'none' : `translateY(${ty.toFixed(2)}px) scale(${sc.toFixed(4)})`
         }
       }
       const f1 = exP > 0 ? Math.max(0, Math.min(1, 1 - pos / exP)) : 0
@@ -686,8 +689,10 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
             height: 80,
             zIndex: 100 - i, // верхний блок стопки над нижними при наложении
             transformOrigin: 'top center',
-            willChange: 'transform',
-            transform: `translateY(${-QUIZ_FAN * i}px) scale(${(1 - QUIZ_SCALE_STEP * i).toFixed(3)})`,
+            // НЕ ставим will-change:transform — оно (как и transform) отключает backdrop-filter
+            // дочернего стеклянного слоя в Safari. Идентичный transform у i=0 → 'none'.
+            transform:
+              i === 0 ? 'none' : `translateY(${-QUIZ_FAN * i}px) scale(${(1 - QUIZ_SCALE_STEP * i).toFixed(3)})`,
           }}
         >
           <Pressable style={{ position: 'absolute', inset: 0 }}>
@@ -892,7 +897,9 @@ function Pressable({
   style?: React.CSSProperties
 }) {
   const [pressed, setPressed] = useState(false)
-  const t = pressed ? (squash ? 'scaleX(1.05) scaleY(0.9)' : 'scale(0.96)') : 'scale(1)'
+  // В покое 'none' (а не 'scale(1)') — иначе transform на обёртке Pressable отключает backdrop-filter
+  // у стеклянных дочерних слоёв (квизы/зеркала) в Safari. На нажатии transform включается.
+  const t = pressed ? (squash ? 'scaleX(1.05) scaleY(0.9)' : 'scale(0.96)') : 'none'
   return (
     // @ts-ignore — web-only
     <div
