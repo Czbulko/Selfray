@@ -295,10 +295,12 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       // фон корня свободно затекает в safe-area под статус-баром (нет белой полосы сверху).
       style={{ zoom, background: '#938DB3', overflowX: 'clip' }}
     >
-      {/* ФОН — длинный PNG во всю ширину, натуральная высота (страница скроллится по нему) */}
+      {/* ФОН — длинный PNG во всю ширину, натуральная высота (страница скроллится по нему).
+          ?v=3 — версия URL: iOS Safari кэширует картинку по URL, без версии при смене фона
+          грузится старая из кэша. Бампать число при каждой замене фона. */}
       {/* @ts-ignore — web <img> */}
       <img
-        src="/selfray-bg.png"
+        src="/selfray-bg.png?v=3"
         alt=""
         style={{ display: 'block', width: '100%', height: 'auto' }}
       />
