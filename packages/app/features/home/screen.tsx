@@ -138,46 +138,18 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       }
     }
 
-    // Статус-бар в Safari-вкладке красится theme-color (статичный) → под ним виден шов,
-    // т.к. контент под чёлкой на каждом экране разного оттенка градиента. Лечим динамически:
-    // на каждом «осевшем» экране берём цвет фоновой PNG на линии статус-бара и красим в него
-    // theme-color + фон html/body, чтобы шов исчез и любая щель сверху совпадала по цвету.
-    let bgImgEl: HTMLImageElement | null = null
-    let bgCanvas: HTMLCanvasElement | null = null
-    let bgCtx: CanvasRenderingContext2D | null = null
+    // Шапка (статус-бар) — стабильно лавандовая #938DB3. Раньше цвет сэмплился с фоновой PNG
+    // по экранам, но при нативном скролле бар Safari сворачивается, и менять его не нужно;
+    // к тому же сэмплинг ломался, когда картинка не загрузилась. Просто держим лавандовый.
+    const BAR_COLOR = '#938DB3'
     const setBarColor = () => {
-      bgImgEl = bgImgEl || document.querySelector<HTMLImageElement>('img[src*="selfray-bg"]')
-      if (!bgImgEl || !bgImgEl.complete || !bgImgEl.naturalWidth) return
-      const r = bgImgEl.getBoundingClientRect()
-      if (r.height <= 0) return
-      const scale = bgImgEl.naturalHeight / r.height
-      const py = Math.max(0, Math.min(bgImgEl.naturalHeight - 1, Math.round((24 - r.top) * scale)))
-      const px = Math.round(bgImgEl.naturalWidth / 2)
-      let c: string | null = null
-      try {
-        if (!bgCanvas) {
-          bgCanvas = document.createElement('canvas')
-          bgCanvas.width = 1
-          bgCanvas.height = 1
-          bgCtx = bgCanvas.getContext('2d')
-        }
-        if (!bgCtx) return
-        bgCtx.drawImage(bgImgEl, px, py, 1, 1, 0, 0, 1, 1)
-        const d = bgCtx.getImageData(0, 0, 1, 1).data
-        c = `rgb(${d[0]}, ${d[1]}, ${d[2]})`
-      } catch {
-        return
-      }
-      if (!c) return
       let m = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null
       if (!m) {
         m = document.createElement('meta')
         m.setAttribute('name', 'theme-color')
         document.head.appendChild(m)
       }
-      m.setAttribute('content', c)
-      // Фон html/body НЕ трогаем — там вертикальный градиент (layout.tsx), который и закрывает
-      // safe-area верх/низ нужными цветами. Здесь красим только статус-бар (theme-color во вкладке).
+      m.setAttribute('content', BAR_COLOR)
     }
 
     const render = (pos: number) => {

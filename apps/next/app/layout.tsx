@@ -12,7 +12,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#928EB1',
+  themeColor: '#938DB3',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -46,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               // ВАЖНО: НЕ ставим background-attachment:fixed — в iOS Safari он глючит и фон
               // не отрисовывается (вылезает белый холст). body занимает весь вьюпорт (height:100%),
               // поэтому градиент и так покрывает экран сверху донизу.
-              'html,body{background:linear-gradient(180deg, rgb(146,142,177) 0%, rgb(140,146,183) 55%, rgb(133,146,185) 100%) !important;}' +
+              'html,body{background:linear-gradient(180deg, rgb(147,141,179) 0%, rgb(140,146,183) 55%, rgb(133,146,185) 100%) !important;}' +
               // НАТИВНЫЙ СКРОЛЛ СО СНАПОМ (а не overflow:hidden-поэкранка): благодаря реальному
               // скроллу нижний бар Safari сворачивается → сайт на весь экран, полосы снизу нет.
               // scroll-snap-type:y mandatory + scroll-snap-align:start на тайтлах = чёткая поэкранка.
@@ -87,7 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             zIndex: -1,
             pointerEvents: 'none',
             background:
-              'linear-gradient(180deg, rgb(146,142,177) 0%, rgb(140,146,183) 55%, rgb(133,146,185) 100%)',
+              'linear-gradient(180deg, rgb(147,141,179) 0%, rgb(140,146,183) 55%, rgb(133,146,185) 100%)',
           }}
         />
         <NextTamaguiProvider>{children}</NextTamaguiProvider>
