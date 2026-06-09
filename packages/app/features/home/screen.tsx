@@ -815,7 +815,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         zIndex: 200,
         borderRadius: 20 * zoom,
         backgroundColor: 'rgba(250,250,250,0.5)',
-        border: '1.5px solid rgba(255,255,255,0.6)',
+        border: '0.5px solid rgba(255,255,255,0.6)',
         boxShadow: '0px 10px 28px rgba(2,1,10,0.12)',
         WebkitBackdropFilter: 'blur(37px)',
         backdropFilter: 'blur(37px)',
@@ -856,13 +856,14 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         {/* @ts-ignore — web <img> */}
         <img src="/profile.png" alt="" style={{ width: '100%', height: '100%', display: 'block' }} />
       </div>
-      {/* @ts-ignore — подпись Profile: центр под вторым квадратом (x = 109-29.5 = 79.5) */}
+      {/* @ts-ignore — подпись Profile: центрируем по тому же RIGHT-референсу, что и аватар (right:16,
+          центр = 29.5 от правого края) → совпадает с аватаром при любом border/box-sizing. */}
       <div
         style={{
           position: 'absolute',
           top: 35 * zoom,
-          left: 79.5 * zoom,
-          transform: 'translateX(-50%)',
+          right: 29.5 * zoom,
+          transform: 'translateX(50%)',
           whiteSpace: 'nowrap',
           fontFamily: 'Hanken Grotesk, sans-serif',
           fontWeight: 500,
@@ -935,8 +936,10 @@ function MirrorsCarousel() {
   // слайдер-таблетка
   const TRACK = 218 // уже на 32px (по 16 с каждого края: 250 -> 218)
   const THUMB = 96
-  const PAD = 0 // бегунок встык к краям пилюли
-  const travel = TRACK - THUMB - PAD * 2
+  const PAD = 1 // 1px отступ от краёв пилюли в крайних позициях
+  // -3 = бордер трека 2×1.5px: тягачка (position:absolute) считается от padding-box (внутри бордера),
+  // поэтому ход и крайние позиции меряем по внутренней ширине (218-3=215), иначе вылезает за край.
+  const travel = TRACK - 3 - THUMB - PAD * 2
   const thumbLeft = PAD + (N > 1 ? (idx / (N - 1)) * travel : 0)
   const trackRef = useRef<HTMLDivElement>(null)
   const sdrag = useRef(false)
@@ -1062,11 +1065,11 @@ function MirrorsCarousel() {
         <div
           style={{
             position: 'absolute',
-            top: -1, // тягачку подняли на 1px (съезжала вниз)
+            top: 1, // 1px отступ сверху/снизу: высота 39 = внутренняя высота трека (44-3 бордер) - 2×1px
             left: thumbLeft,
             width: THUMB,
-            height: 44,
-            borderRadius: 22,
+            height: 39,
+            borderRadius: 19.5,
             backgroundColor: 'rgba(250,250,250,0.9)',
             transition: 'left 320ms cubic-bezier(0.22,1,0.36,1)',
           }}
