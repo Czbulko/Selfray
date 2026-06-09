@@ -1075,7 +1075,9 @@ function MirrorsCarousel() {
             borderRadius: 19.5,
             backgroundColor: 'rgba(250,250,250,0.9)',
             transformOrigin: 'center center',
-            transform: thumbPressed ? 'scale(0.9)' : 'scale(1)', // под пальцем чуть уменьшается
+            // под пальцем ужимается на РАВНЫЕ 3px со всех сторон (раздельные scaleX/scaleY, т.к. тягачка
+            // 96×39 — единый scale дал бы разный зазор слева и сверху). Так левый отступ = верхнему.
+            transform: thumbPressed ? `scaleX(${(THUMB - 6) / THUMB}) scaleY(${(39 - 6) / 39})` : 'scale(1)',
             transition: 'left 320ms cubic-bezier(0.22,1,0.36,1), transform 150ms ease',
           }}
         />
