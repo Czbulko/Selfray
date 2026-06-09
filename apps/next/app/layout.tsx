@@ -51,8 +51,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               // скроллу нижний бар Safari сворачивается → сайт на весь экран, полосы снизу нет.
               // scroll-snap-type:y mandatory + scroll-snap-align:start на тайтлах = чёткая поэкранка.
               // Тряску колоды/карусели глушим через touch-action на самих элементах (см. screen.tsx).
-              'html{scroll-snap-type:y mandatory;}' +
-              'body{overscroll-behavior-y:none;}',
+              // overflow-x:clip — режем ТОЛЬКО горизонталь (карты колоды/карусели вылезают за 402px
+              // макета). clip (в отличие от hidden) НЕ создаёт scroll-контейнер → вертикальный
+              // scroll-snap на html продолжает работать. Иначе страницу можно утащить вбок.
+              'html{scroll-snap-type:y mandatory;overflow-x:clip;}' +
+              'body{overflow-x:clip;overscroll-behavior:none;}',
           }}
         />
       </head>
