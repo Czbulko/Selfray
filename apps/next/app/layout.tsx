@@ -51,13 +51,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               // скроллу нижний бар Safari сворачивается → сайт на весь экран, полосы снизу нет.
               // scroll-snap-type:y mandatory + scroll-snap-align:start на тайтлах = чёткая поэкранка.
               // Тряску колоды/карусели глушим через touch-action на самих элементах (см. screen.tsx).
-              // overflow-x:clip — режем ТОЛЬКО горизонталь (карты колоды/карусели вылезают за 402px
-              // макета). clip (в отличие от hidden) НЕ создаёт scroll-контейнер → вертикальный
-              // scroll-snap на html продолжает работать. Иначе страницу можно утащить вбок.
-              // overscroll-behavior:none на html (это scroll-контейнер) — на iOS 16+ убирает
-              // pull-to-refresh и резину, чтобы случайный «дотяг» сверху не перезагружал страницу
-              // и не кидал на второй экран.
-              'html{scroll-snap-type:y mandatory;overflow-x:clip;overscroll-behavior:none;}' +
+              // overflow-x:clip режем горизонталь (карты колоды/карусели вылезают за 402px) — но
+              // ТОЛЬКО на body. На <html> любой overflow ломает iOS: фон корня перестаёт затекать
+              // в safe-area под статус-баром → там белая полоса, и весь контент опускается на высоту
+              // safe-area. Поэтому html остаётся overflow:visible (фон затекает под чёлку = лаванда,
+              // и контент поднимается под статус-бар). Горизонтальный скролл всё равно невозможен —
+              // body уже обрезал вылет.
+              'html{scroll-snap-type:y mandatory;overscroll-behavior:none;}' +
               'body{overflow-x:clip;overscroll-behavior:none;}',
           }}
         />
@@ -82,8 +82,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             position: 'fixed',
             top: '-20vh',
             bottom: '-20vh',
-            left: '-10vw',
-            right: '-10vw',
+            left: 0,
+            right: 0,
             zIndex: -1,
             pointerEvents: 'none',
             background:

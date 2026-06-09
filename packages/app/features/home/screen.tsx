@@ -281,15 +281,19 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
   return (
     // @ts-ignore — внешний статичный контейнер (FAB вне translateY-трека, иначе fixed сломается)
     <div>
-    {/* @ts-ignore — контейнер контента. marginTop:-62 поднимает весь интерфейс на 62px
-        (контент уходит под статус-бар, как в макете) → белой шапки сверху нет. */}
-    <div ref={wrapRef} id="pagerWrap" style={{ marginTop: -62 }}>
+    {/* @ts-ignore — контейнер контента. marginTop НЕ нужен: т.к. html больше не scroll-контейнер
+        (overflow:visible), контент сам затекает под статус-бар (safe-area) → ВСЕ экраны поднимаются
+        на высоту чёлки (~62px) равномерно, а не только первый. */}
+    <div ref={wrapRef} id="pagerWrap">
     <YStack
       position="relative"
       width={DESIGN_WIDTH}
       // @ts-ignore — zoom + фон = нижний край градиента (lefts blue → right pink), чтобы спейсер снизу
       // продолжал картинку бесшовно (без лавандовой подложки), когда страница длиннее PNG
-      style={{ zoom, background: '#938DB3' }}
+      // overflowX:clip — обрезаем горизонтальный вылет карт коверфлоу/колоды ВНУТРИ артборда,
+      // чтобы страницу нельзя было утащить вбок. Клип на самом артборде (а НЕ на html) — тогда
+      // фон корня свободно затекает в safe-area под статус-баром (нет белой полосы сверху).
+      style={{ zoom, background: '#938DB3', overflowX: 'clip' }}
     >
       {/* ФОН — длинный PNG во всю ширину, натуральная высота (страница скроллится по нему) */}
       {/* @ts-ignore — web <img> */}
