@@ -281,10 +281,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
   return (
     // @ts-ignore — внешний статичный контейнер (FAB вне translateY-трека, иначе fixed сломается)
     <div>
-    {/* @ts-ignore — контейнер контента. marginTop НЕ нужен: т.к. html больше не scroll-контейнер
-        (overflow:visible), контент сам затекает под статус-бар (safe-area) → ВСЕ экраны поднимаются
-        на высоту чёлки (~62px) равномерно, а не только первый. */}
-    <div ref={wrapRef} id="pagerWrap">
+    {/* @ts-ignore — контейнер контента. marginTop:-62 поднимает интерфейс под статус-бар. */}
+    <div ref={wrapRef} id="pagerWrap" style={{ marginTop: -62 }}>
     <YStack
       position="relative"
       width={DESIGN_WIDTH}
@@ -300,7 +298,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           грузится старая из кэша. Бампать число при каждой замене фона. */}
       {/* @ts-ignore — web <img> */}
       <img
-        src="/selfray-bg.png?v=3"
+        src="/selfray-bg.png?v=4"
         alt=""
         style={{ display: 'block', width: '100%', height: 'auto' }}
       />

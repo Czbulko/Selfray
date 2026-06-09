@@ -23,12 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <head>
-        {/* Standalone (добавлено на домашний экран): контент рисуется ПОД статус-баром,
-            часы/батарея ложатся поверх градиента — плоской полосы больше нет.
-            В обычной вкладке Safari полоса неизбежна (её красит сам браузер по theme-color). */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        {/* НЕ добавляем apple-mobile-web-app-capable / status-bar-style: во вкладке Safari они
+            заставляют iOS рисовать БЕЛУЮ статус-полосу (резервирует её как web-app chrome) и
+            игнорировать theme-color. Без них статус-бар берёт цвет страницы/theme-color (#938DB3). */}
         <meta name="apple-mobile-web-app-title" content="Selfray" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
