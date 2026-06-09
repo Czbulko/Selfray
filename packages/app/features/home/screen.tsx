@@ -843,24 +843,19 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           fontWeight: 500,
           fontSize: 10 * zoom,
           lineHeight: `${12 * zoom}px`,
+          letterSpacing: 'normal', // перебиваем унаследованный letter-spacing:-4px (буквы слипались)
           color: '#41474F',
         }}
       >
         Chat
       </div>
 
-      {/* Правый таб «Profile»: пока плейсхолдер-квадрат (top:6/right:16) */}
+      {/* Правый таб «Profile»: аватар (27×27, top:6/right:16, без белой подложки) */}
       {/* @ts-ignore — web-only */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 6 * zoom,
-          right: 16 * zoom,
-          width: 27 * zoom,
-          height: 27 * zoom,
-          backgroundColor: 'rgba(255,255,255,0.7)',
-        }}
-      />
+      <div style={{ position: 'absolute', top: 6 * zoom, right: 16 * zoom, width: 27 * zoom, height: 27 * zoom }}>
+        {/* @ts-ignore — web <img> */}
+        <img src="/profile.png" alt="" style={{ width: '100%', height: '100%', display: 'block' }} />
+      </div>
       {/* @ts-ignore — подпись Profile: центр под вторым квадратом (x = 109-29.5 = 79.5) */}
       <div
         style={{
@@ -873,6 +868,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           fontWeight: 500,
           fontSize: 10 * zoom,
           lineHeight: `${12 * zoom}px`,
+          letterSpacing: 'normal', // перебиваем унаследованный letter-spacing:-4px (буквы слипались)
           color: '#41474F',
         }}
       >
