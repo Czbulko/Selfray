@@ -47,12 +47,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               // не отрисовывается (вылезает белый холст). body занимает весь вьюпорт (height:100%),
               // поэтому градиент и так покрывает экран сверху донизу.
               'html,body{background:linear-gradient(180deg, rgb(146,142,177) 0%, rgb(140,146,183) 55%, rgb(133,146,185) 100%) !important;}' +
-              // ПЕЙДЖЕР: нативный скролл выключен — экраны переключаются свайпом (transform).
-              // Так горизонтальные свайпы колоды/карусели не таскают страницу по вертикали.
-              // ВЫСОТА: 100% в iOS Safari = высота МАЛЕНЬКОГО вьюпорта (с показанным тулбаром) →
-              // body не достаёт под тулбар → там вылезала полоса. 100lvh = БОЛЬШОЙ вьюпорт (весь экран,
-              // включая зону под тулбаром) → фон/контент уходят под тулбар, полосы нет, как при скролле.
-              'html,body{height:100vh;height:100lvh;overflow:hidden;overscroll-behavior:none;}',
+              // НАТИВНЫЙ СКРОЛЛ СО СНАПОМ (а не overflow:hidden-поэкранка): благодаря реальному
+              // скроллу нижний бар Safari сворачивается → сайт на весь экран, полосы снизу нет.
+              // scroll-snap-type:y mandatory + scroll-snap-align:start на тайтлах = чёткая поэкранка.
+              // Тряску колоды/карусели глушим через touch-action на самих элементах (см. screen.tsx).
+              'html{scroll-snap-type:y mandatory;}' +
+              'body{overscroll-behavior-y:none;}',
           }}
         />
       </head>

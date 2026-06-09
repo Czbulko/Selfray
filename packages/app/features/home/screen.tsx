@@ -101,7 +101,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
 
     const measure = () => {
       wrap = wrapRef.current
-      const base = posRef.current
+      const base = window.scrollY || window.pageYOffset || 0
       const top = (id: string) => {
         const e = document.getElementById(id)
         return e ? e.getBoundingClientRect().top + base : null
@@ -181,7 +181,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     }
 
     const render = (pos: number) => {
-      if (wrap) wrap.style.transform = `translate3d(0, ${-pos}px, 0)`
+      // НЕ двигаем контент — страница скроллится нативно. Здесь только эффекты по позиции скролла.
       if (blocks.length && qzP > exP) {
         const p = Math.max(0, Math.min(1, (pos - exP) / (qzP - exP)))
         for (let i = 0; i < blocks.length; i++) {
@@ -200,95 +200,34 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       setFabVisible((v) => (v === show ? v : show))
     }
 
+    // Эффекты (аккордеон/тизер/FAB) завязаны на ПОЗИЦИЮ НАТИВНОГО СКРОЛЛА. rAF-троттлинг,
+    // чтобы не дёргалось на инерции iOS.
     let raf = 0
-    const animate = (target: number) => {
-      if (raf) cancelAnimationFrame(raf)
-      const start = posRef.current
-      const t0 = performance.now()
-      const dur = 460
-      const ease = (t: number) => 1 - Math.pow(1 - t, 3)
-      const step = (now: number) => {
-        const p = Math.min(1, (now - t0) / dur)
-        posRef.current = start + (target - start) * ease(p)
-        render(posRef.current)
-        if (p < 1) {
-          raf = requestAnimationFrame(step)
-        } else {
-          posRef.current = target
-          render(target)
-          raf = 0
-          setBarColor()
-        }
-      }
-      raf = requestAnimationFrame(step)
+    const scrollPos = () => window.scrollY || window.pageYOffset || 0
+    const onScroll = () => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        render(scrollPos())
+      })
     }
-    const goDir = (dir: number) => {
-      // Самолечение: если на маунте измерили ДО раскладки (pages свёлся к [0]) — перемерить сейчас.
-      if (pages.length <= 1) measure()
-      // Текущую страницу определяем по ФАКТИЧЕСКОЙ позиции (ближайшая из pages), а не по счётчику —
-      // так свайп вниз и вверх всегда садятся в одну и ту же точку, без рассинхрона/«прыжков».
-      let cur = 0
-      let best = Infinity
-      for (let i = 0; i < pages.length; i++) {
-        const d = Math.abs(pages[i] - posRef.current)
-        if (d < best) {
-          best = d
-          cur = i
-        }
-      }
-      const np = Math.max(0, Math.min(pages.length - 1, cur + dir))
-      pageRef.current = np
-      animate(pages[np])
-    }
-
-    let sx = 0
-    let sy = 0
-    let decided: 'none' | 'v' | 'h' = 'none'
-    let active = false
-    const onTS = (e: TouchEvent) => {
-      const t = e.touches[0]
-      sx = t.clientX
-      sy = t.clientY
-      decided = 'none'
-      active = true
-    }
-    const onTM = (e: TouchEvent) => {
-      if (!active || decided !== 'none') return
-      const t = e.touches[0]
-      const dx = t.clientX - sx
-      const dy = t.clientY - sy
-      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) decided = Math.abs(dy) > Math.abs(dx) ? 'v' : 'h'
-    }
-    const onTE = (e: TouchEvent) => {
-      if (!active) return
-      active = false
-      if (decided !== 'v') return
-      const dy = e.changedTouches[0].clientY - sy
-      if (Math.abs(dy) < 40) return
-      goDir(dy < 0 ? 1 : -1)
-    }
-    let wheelLock = false
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) < 8 || wheelLock) return
-      wheelLock = true
-      setTimeout(() => {
-        wheelLock = false
-      }, 520)
-      goDir(e.deltaY > 0 ? 1 : -1)
+    // Статус-бар перекрашиваем, когда скролл «осел» (дебаунс) — это снап завершился.
+    let settleTimer = 0
+    const onScrollSettle = () => {
+      if (settleTimer) clearTimeout(settleTimer)
+      settleTimer = window.setTimeout(setBarColor, 150)
     }
     const onResize = () => {
       measure()
-      posRef.current = pages[Math.min(pageRef.current, pages.length - 1)]
-      render(posRef.current)
+      render(scrollPos())
       setBarColor()
     }
 
     measure()
-    render(posRef.current)
+    render(scrollPos())
     setBarColor()
-    // КРИТИЧНО: на маунте раскладка/шрифты/zoom могут быть ещё не готовы → getBoundingClientRect
-    // вернёт нули → pages свёлся бы к [0] и свайпы НЕ РАБОТАЮТ до первого resize.
-    // Поэтому перемеряем несколько раз, как только всё устаканится.
+    // На маунте раскладка/шрифты/zoom могут быть ещё не готовы → getBoundingClientRect вернёт нули →
+    // смещения экранов посчитаются неверно. Перемеряем несколько раз, как только всё устаканится.
     const timers: number[] = []
     const remeasure = () => onResize()
     requestAnimationFrame(remeasure)
@@ -301,19 +240,16 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     // PNG может ещё грузиться на маунте — перемерить + перекрасить бар, как только она готова
     const bgImg = document.querySelector('img[src*="selfray-bg"]') as HTMLImageElement | null
     if (bgImg && !bgImg.complete) bgImg.addEventListener('load', remeasure, { once: true })
-    window.addEventListener('touchstart', onTS, { passive: true })
-    window.addEventListener('touchmove', onTM, { passive: true })
-    window.addEventListener('touchend', onTE, { passive: true })
-    window.addEventListener('wheel', onWheel, { passive: true })
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('scroll', onScrollSettle, { passive: true })
     window.addEventListener('resize', onResize)
     return () => {
-      window.removeEventListener('touchstart', onTS)
-      window.removeEventListener('touchmove', onTM)
-      window.removeEventListener('touchend', onTE)
-      window.removeEventListener('wheel', onWheel)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('scroll', onScrollSettle)
       window.removeEventListener('resize', onResize)
       window.removeEventListener('load', remeasure)
       for (const t of timers) clearTimeout(t)
+      if (settleTimer) clearTimeout(settleTimer)
       if (raf) cancelAnimationFrame(raf)
     }
   }, [zoom])
@@ -321,8 +257,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
   return (
     // @ts-ignore — внешний статичный контейнер (FAB вне translateY-трека, иначе fixed сломается)
     <div>
-    {/* @ts-ignore — ТРЕК пейджера: его двигаем translateY; внутри -62 сдвиг под статус-бар */}
-    <div ref={wrapRef} id="pagerWrap" style={{ marginTop: -62 }}>
+    {/* @ts-ignore — контейнер контента (нативный скролл, без transform) */}
+    <div ref={wrapRef} id="pagerWrap">
     <YStack
       position="relative"
       width={DESIGN_WIDTH}
@@ -646,7 +582,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="exploreAnchor"
         // @ts-ignore — web-only + CSS-снап: тайтл встаёт на ~50 от верха
-        style={{ position: 'absolute', top: 759, left: 28, right: 28, zIndex: 2, scrollSnapAlign: 'start', scrollMarginTop: 50 }}
+        style={{ position: 'absolute', top: 759, left: 28, right: 28, zIndex: 2, scrollSnapAlign: 'start', scrollMarginTop: TITLE_TOP }}
       >
         Explore X-Rays
       </Text>
@@ -681,7 +617,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="quizzesAnchor"
         // @ts-ignore — web-only + CSS-снап: тайтл встаёт на ~62 от верха
-        style={{ position: 'absolute', top: 1408, left: 28, right: 28, zIndex: 2, scrollSnapAlign: 'start', scrollMarginTop: 62 }}
+        style={{ position: 'absolute', top: 1408, left: 28, right: 28, zIndex: 2, scrollSnapAlign: 'start', scrollMarginTop: TITLE_TOP }}
       >
         Quizzes
       </Text>
@@ -795,7 +731,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         textAlign="center"
         id="mirrorsAnchor"
         // @ts-ignore — web-only + CSS-снап: тайтл встаёт на ~98 от верха
-        style={{ position: 'absolute', top: 2134, left: 28, right: 28, zIndex: 2, scrollSnapAlign: 'start', scrollMarginTop: 98 }}
+        style={{ position: 'absolute', top: 2134, left: 28, right: 28, zIndex: 2, scrollSnapAlign: 'start', scrollMarginTop: TITLE_TOP }}
       >
         Mirrors
       </Text>
