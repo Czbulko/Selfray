@@ -825,18 +825,31 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         pointerEvents: fabVisible ? 'auto' : 'none',
       }}
     >
-      {/* Два плейсхолдера 27×27: первый top:6/left:16, второй top:6/right:16 (в zoom-px) */}
+      {/* Левый таб «Chat»: иконка-пузырь (27×27, top:6/left:16, без белой подложки) */}
       {/* @ts-ignore — web-only */}
+      <div style={{ position: 'absolute', top: 6 * zoom, left: 16 * zoom, width: 27 * zoom, height: 27 * zoom }}>
+        {/* @ts-ignore — web <img> */}
+        <img src="/buble.svg" alt="" style={{ width: '100%', height: '100%', display: 'block' }} />
+      </div>
+      {/* @ts-ignore — подпись Chat: Hanken Grotesk Medium 10, #41474F, центр под квадратом (x=29.5) */}
       <div
         style={{
           position: 'absolute',
-          top: 6 * zoom,
-          left: 16 * zoom,
-          width: 27 * zoom,
-          height: 27 * zoom,
-          backgroundColor: 'rgba(255,255,255,0.7)',
+          top: 35 * zoom,
+          left: 29.5 * zoom,
+          transform: 'translateX(-50%)',
+          whiteSpace: 'nowrap',
+          fontFamily: 'Hanken Grotesk, sans-serif',
+          fontWeight: 500,
+          fontSize: 10 * zoom,
+          lineHeight: `${12 * zoom}px`,
+          color: '#41474F',
         }}
-      />
+      >
+        Chat
+      </div>
+
+      {/* Правый таб «Profile»: пока плейсхолдер-квадрат (top:6/right:16) */}
       {/* @ts-ignore — web-only */}
       <div
         style={{
@@ -848,6 +861,23 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           backgroundColor: 'rgba(255,255,255,0.7)',
         }}
       />
+      {/* @ts-ignore — подпись Profile: центр под вторым квадратом (x = 109-29.5 = 79.5) */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 35 * zoom,
+          left: 79.5 * zoom,
+          transform: 'translateX(-50%)',
+          whiteSpace: 'nowrap',
+          fontFamily: 'Hanken Grotesk, sans-serif',
+          fontWeight: 500,
+          fontSize: 10 * zoom,
+          lineHeight: `${12 * zoom}px`,
+          color: '#41474F',
+        }}
+      >
+        Profile
+      </div>
     </div>
     </div>
   )
