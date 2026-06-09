@@ -138,18 +138,34 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       }
     }
 
-    // Шапка (статус-бар) — стабильно лавандовая #938DB3. Раньше цвет сэмплился с фоновой PNG
-    // по экранам, но при нативном скролле бар Safari сворачивается, и менять его не нужно;
-    // к тому же сэмплинг ломался, когда картинка не загрузилась. Просто держим лавандовый.
-    const BAR_COLOR = '#938DB3'
+    // Шапка (статус-бар) = ТОЧНЫЙ цвет верхнего края фоновой PNG. Так под чёлкой нет шва между
+    // статус-баром и контентом — и цвет подстраивается под ЛЮБОЙ подложенный фон сам.
+    // Запасной лавандовый, пока картинка не загрузилась (или если 0 байт) — чтобы не было белого.
     const setBarColor = () => {
+      let c = '#938DB3'
+      const img = document.querySelector<HTMLImageElement>('img[src*="selfray-bg"]')
+      if (img && img.complete && img.naturalWidth) {
+        try {
+          const cv = document.createElement('canvas')
+          cv.width = 1
+          cv.height = 1
+          const cx = cv.getContext('2d')
+          if (cx) {
+            cx.drawImage(img, Math.floor(img.naturalWidth / 2), 4, 1, 1, 0, 0, 1, 1)
+            const d = cx.getImageData(0, 0, 1, 1).data
+            c = `rgb(${d[0]}, ${d[1]}, ${d[2]})`
+          }
+        } catch {
+          // оставляем запасной цвет
+        }
+      }
       let m = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null
       if (!m) {
         m = document.createElement('meta')
         m.setAttribute('name', 'theme-color')
         document.head.appendChild(m)
       }
-      m.setAttribute('content', BAR_COLOR)
+      m.setAttribute('content', c)
     }
 
     const render = (pos: number) => {
