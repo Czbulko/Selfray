@@ -695,7 +695,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
               i === 0 ? 'none' : `translateY(${-QUIZ_FAN * i}px) scale(${(1 - QUIZ_SCALE_STEP * i).toFixed(3)})`,
           }}
         >
-          <Pressable style={{ position: 'absolute', inset: 0 }}>
+          <Pressable glass style={{ position: 'absolute', inset: 0 }}>
           {/* нижний слой: бекдроп-блюр градиента (НЕ под filter — иначе backdrop-filter не работает) */}
           <div
             style={{
@@ -890,16 +890,18 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
 function Pressable({
   children,
   squash,
+  glass,
   style,
 }: {
   children: React.ReactNode
   squash?: boolean
+  glass?: boolean
   style?: React.CSSProperties
 }) {
   const [pressed, setPressed] = useState(false)
-  // В покое 'none' (а не 'scale(1)') — иначе transform на обёртке Pressable отключает backdrop-filter
-  // у стеклянных дочерних слоёв (квизы/зеркала) в Safari. На нажатии transform включается.
-  const t = pressed ? (squash ? 'scaleX(1.05) scaleY(0.9)' : 'scale(0.96)') : 'none'
+  // glass=true → в покое 'none' (а не 'scale(1)'), иначе transform обёртки отключает backdrop-filter
+  // дочернего стекла в Safari. Ставим только там, где нужен бекдроп-блюр (квизы), чтобы не задеть зеркала.
+  const t = pressed ? (squash ? 'scaleX(1.05) scaleY(0.9)' : 'scale(0.96)') : glass ? 'none' : 'scale(1)'
   return (
     // @ts-ignore — web-only
     <div
