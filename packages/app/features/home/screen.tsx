@@ -223,6 +223,12 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       setBarColor()
     }
 
+    // Стартуем с первого экрана (герой). scrollRestoration уже выставлен в manual в layout,
+    // здесь дожимаем на случай, если браузер успел восстановить позицию до маунта.
+    if (typeof history !== 'undefined' && 'scrollRestoration' in history) {
+      history.scrollRestoration = 'manual'
+    }
+    if ((window.scrollY || 0) < 60) window.scrollTo(0, 0)
     measure()
     render(scrollPos())
     setBarColor()

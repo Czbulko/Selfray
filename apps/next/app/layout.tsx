@@ -58,6 +58,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               'body{overflow-x:clip;overscroll-behavior:none;}',
           }}
         />
+        {/* Pull-to-refresh / любая перезагрузка должны открывать ПЕРВЫЙ экран (герой). Без этого
+            браузер восстанавливает прошлую позицию скролла, а mandatory-снап «дотягивает» её до
+            второго экрана. Скрипт ставит manual ДО восстановления (на парсинге head). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "if('scrollRestoration' in history){history.scrollRestoration='manual';}window.scrollTo(0,0);",
+          }}
+        />
       </head>
       <body>
         {/* ФУЛЛСКРИН-ФОН ПОД ВСЕМ. position:fixed со слоем, вылезающим на 20vh за каждый край →
