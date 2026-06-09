@@ -23,9 +23,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <head>
-        {/* НЕ добавляем apple-mobile-web-app-capable / status-bar-style: во вкладке Safari они
-            заставляют iOS рисовать БЕЛУЮ статус-полосу (резервирует её как web-app chrome) и
-            игнорировать theme-color. Без них статус-бар берёт цвет страницы/theme-color (#938DB3). */}
+        {/* Standalone (с домашнего экрана): Safari-чрома НЕТ вообще — ни статус-полосы, ни адресной
+            строки. black-translucent → контент рисуется ПОД часами/батареей (там лавандовый фон),
+            белого «потолка» нет. Это единственный способ полностью убрать бар (во вкладке его рисует
+            сам Safari и со страницы не перекрасить). */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Selfray" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
