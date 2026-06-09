@@ -708,7 +708,7 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
           />
           {/* белая плашка 80% + тень (drop-shadow на НЕобрезанной обёртке = тень по форме squircle) */}
           <div style={{ position: 'absolute', inset: 0, filter: 'drop-shadow(0px 8px 22px rgba(2,1,10,0.08))' }}>
-            <div style={{ position: 'absolute', inset: 0, clipPath: QUIZ_SQUIRCLE, backgroundColor: 'rgba(250,250,250,0.5)' }}>
+            <div style={{ position: 'absolute', inset: 0, clipPath: QUIZ_SQUIRCLE, backgroundColor: 'rgba(239,234,230,0.8)' }}>
               <svg
                 width={346}
                 height={80}
@@ -1112,7 +1112,7 @@ function MirrorGlass({ image }: { image?: string }) {
       />
       {/* @ts-ignore — плашка + тень по форме squircle */}
       <div style={{ position: 'absolute', inset: 0, filter: 'drop-shadow(0px 8px 22px rgba(2,1,10,0.08))' }}>
-        <div style={{ position: 'absolute', inset: 0, clipPath: MIRROR_SQUIRCLE, backgroundColor: 'rgba(250,250,250,0.5)' }}>
+        <div style={{ position: 'absolute', inset: 0, clipPath: MIRROR_SQUIRCLE, backgroundColor: 'rgba(239,234,230,0.8)' }}>
           {image ? (
             // @ts-ignore — картинка по центру карты (обрезана squircle), бордер рисуется поверх
             <img

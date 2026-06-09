@@ -201,14 +201,14 @@ function CardVisual({ title, sub, shadow, tappable }: { title: string; sub: stri
           position: 'absolute',
           inset: 0,
           clipPath: SQUIRCLE,
-          WebkitBackdropFilter: 'blur(20px)',
-          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(37px)',
+          backdropFilter: 'blur(37px)',
         }}
       />
       {/* тень на НЕобрезанной обёртке — иначе clip-path срезает свой же drop-shadow */}
       <div style={{ position: 'absolute', inset: 0, filter: shadow }}>
         <div style={{ position: 'absolute', inset: 0, clipPath: SQUIRCLE }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(255,255,255,0.14)' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(239,234,230,0.8)' }} />
         <img
           src="/illustration.png"
           width={W}
