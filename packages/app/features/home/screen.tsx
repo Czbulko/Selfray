@@ -176,9 +176,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
         document.head.appendChild(m)
       }
       m.setAttribute('content', c)
-      // в layout.tsx фон html/body стоит с !important — перебиваем тоже через important
-      document.documentElement.style.setProperty('background', c, 'important')
-      document.body.style.setProperty('background', c, 'important')
+      // Фон html/body НЕ трогаем — там вертикальный градиент (layout.tsx), который и закрывает
+      // safe-area верх/низ нужными цветами. Здесь красим только статус-бар (theme-color во вкладке).
     }
 
     const render = (pos: number) => {
@@ -224,6 +223,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       raf = requestAnimationFrame(step)
     }
     const goDir = (dir: number) => {
+      // Самолечение: если на маунте измерили ДО раскладки (pages свёлся к [0]) — перемерить сейчас.
+      if (pages.length <= 1) measure()
       // Текущую страницу определяем по ФАКТИЧЕСКОЙ позиции (ближайшая из pages), а не по счётчику —
       // так свайп вниз и вверх всегда садятся в одну и ту же точку, без рассинхрона/«прыжков».
       let cur = 0
@@ -279,14 +280,27 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       measure()
       posRef.current = pages[Math.min(pageRef.current, pages.length - 1)]
       render(posRef.current)
+      setBarColor()
     }
 
     measure()
     render(posRef.current)
     setBarColor()
-    // PNG может ещё грузиться на маунте — перекрасим бар, как только она готова
+    // КРИТИЧНО: на маунте раскладка/шрифты/zoom могут быть ещё не готовы → getBoundingClientRect
+    // вернёт нули → pages свёлся бы к [0] и свайпы НЕ РАБОТАЮТ до первого resize.
+    // Поэтому перемеряем несколько раз, как только всё устаканится.
+    const timers: number[] = []
+    const remeasure = () => onResize()
+    requestAnimationFrame(remeasure)
+    timers.push(window.setTimeout(remeasure, 120))
+    timers.push(window.setTimeout(remeasure, 400))
+    timers.push(window.setTimeout(remeasure, 1000))
+    window.addEventListener('load', remeasure)
+    const fonts = (document as any).fonts
+    if (fonts && fonts.ready && typeof fonts.ready.then === 'function') fonts.ready.then(remeasure)
+    // PNG может ещё грузиться на маунте — перемерить + перекрасить бар, как только она готова
     const bgImg = document.querySelector('img[src*="selfray-bg"]') as HTMLImageElement | null
-    if (bgImg && !bgImg.complete) bgImg.addEventListener('load', setBarColor, { once: true })
+    if (bgImg && !bgImg.complete) bgImg.addEventListener('load', remeasure, { once: true })
     window.addEventListener('touchstart', onTS, { passive: true })
     window.addEventListener('touchmove', onTM, { passive: true })
     window.addEventListener('touchend', onTE, { passive: true })
@@ -298,6 +312,8 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       window.removeEventListener('touchend', onTE)
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('resize', onResize)
+      window.removeEventListener('load', remeasure)
+      for (const t of timers) clearTimeout(t)
       if (raf) cancelAnimationFrame(raf)
     }
   }, [zoom])

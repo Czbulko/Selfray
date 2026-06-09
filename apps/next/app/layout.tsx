@@ -41,9 +41,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{
             __html:
               'html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}' +
-              // фон под статус-баром/чёлкой и по краям = ТОЧНЫЙ цвет верхнего пикселя градиента (#928EB1),
-              // иначе виден светлый шов над градиентом
-              'html,body{background:#928EB1 !important;}' +
+              // ФОН ПОД ЧЁЛКОЙ/HOME-ИНДИКАТОРОМ (safe-area). Раньше был сплошной лавандовый —
+              // из-за этого снизу, где контент уже сине-розовый, вылезала лавандовая полоса.
+              // Теперь вертикальный градиент: верх = цвет верха PNG (лавандовый), низ = цвет низа PNG (синий).
+              // background-attachment:fixed → привязан к вьюпорту, так что любая открытая safe-area совпадает.
+              'html,body{background:linear-gradient(180deg, rgb(146,142,177) 0%, rgb(133,146,185) 100%) !important; background-attachment:fixed !important;}' +
               // ПЕЙДЖЕР: нативный скролл выключен — экраны переключаются свайпом (transform).
               // Так горизонтальные свайпы колоды/карусели не таскают страницу по вертикали.
               'html,body{height:100%;overflow:hidden;overscroll-behavior:none;}',
