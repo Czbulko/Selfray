@@ -54,7 +54,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               // overflow-x:clip — режем ТОЛЬКО горизонталь (карты колоды/карусели вылезают за 402px
               // макета). clip (в отличие от hidden) НЕ создаёт scroll-контейнер → вертикальный
               // scroll-snap на html продолжает работать. Иначе страницу можно утащить вбок.
-              'html{scroll-snap-type:y mandatory;overflow-x:clip;}' +
+              // overscroll-behavior:none на html (это scroll-контейнер) — на iOS 16+ убирает
+              // pull-to-refresh и резину, чтобы случайный «дотяг» сверху не перезагружал страницу
+              // и не кидал на второй экран.
+              'html{scroll-snap-type:y mandatory;overflow-x:clip;overscroll-behavior:none;}' +
               'body{overflow-x:clip;overscroll-behavior:none;}',
           }}
         />

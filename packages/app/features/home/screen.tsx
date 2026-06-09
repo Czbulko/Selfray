@@ -223,12 +223,30 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
       setBarColor()
     }
 
-    // Стартуем с первого экрана (герой). scrollRestoration уже выставлен в manual в layout,
-    // здесь дожимаем на случай, если браузер успел восстановить позицию до маунта.
+    // iOS Safari часто ИГНОРИРУЕТ scrollRestoration:manual и восстанавливает позицию после
+    // reload/pull-to-refresh, а mandatory-снап «дотягивает» её до второго экрана. Поэтому жёстко
+    // сбрасываем на верх: на миг выключаем снап (иначе он перебьёт scrollTo), скроллим в 0, и
+    // возвращаем снап через кадр. Дёргаем на маунте, на pageshow (в т.ч. bfcache iOS) и с задержками.
     if (typeof history !== 'undefined' && 'scrollRestoration' in history) {
       history.scrollRestoration = 'manual'
     }
-    if ((window.scrollY || 0) < 60) window.scrollTo(0, 0)
+    const forceTop = () => {
+      const de = document.documentElement
+      de.style.scrollSnapType = 'none'
+      window.scrollTo(0, 0)
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0)
+        de.style.scrollSnapType = '' // вернуть к CSS (y mandatory)
+      })
+    }
+    forceTop()
+    // Агрессивный сброс с задержками делаем ТОЛЬКО при reload / back-forward (там и происходит
+    // восстановление позиции). На обычной первой загрузке — НЕ дёргаем, иначе свайп юзера в первые
+    // 0.6с откинуло бы назад на верх.
+    const navEntry = (typeof performance !== 'undefined' && performance.getEntriesByType
+      ? (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)
+      : undefined)
+    const isRestore = !!navEntry && (navEntry.type === 'reload' || navEntry.type === 'back_forward')
     measure()
     render(scrollPos())
     setBarColor()
@@ -246,10 +264,22 @@ export function HomeScreen(_props: { onLinkPress?: () => void }) {
     // PNG может ещё грузиться на маунте — перемерить + перекрасить бар, как только она готова
     const bgImg = document.querySelector('img[src*="selfray-bg"]') as HTMLImageElement | null
     if (bgImg && !bgImg.complete) bgImg.addEventListener('load', remeasure, { once: true })
+    // Дожимаем сброс на верх после возможного позднего восстановления позиции iOS.
+    // pageshow с persisted=true = возврат из bfcache (iOS) — там точно надо сбросить.
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) forceTop()
+    }
+    window.addEventListener('pageshow', onPageShow)
+    if (isRestore) {
+      timers.push(window.setTimeout(forceTop, 60))
+      timers.push(window.setTimeout(forceTop, 250))
+      timers.push(window.setTimeout(forceTop, 600))
+    }
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('scroll', onScrollSettle, { passive: true })
     window.addEventListener('resize', onResize)
     return () => {
+      window.removeEventListener('pageshow', onPageShow)
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('scroll', onScrollSettle)
       window.removeEventListener('resize', onResize)
