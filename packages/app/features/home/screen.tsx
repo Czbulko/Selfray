@@ -912,6 +912,7 @@ function Pressable({
 function MirrorsCarousel() {
   const N = MIRRORS.length
   const [idx, setIdx] = useState(0) // дефолт — первая карта по центру
+  const [thumbPressed, setThumbPressed] = useState(false) // тап по тягачке → чуть уменьшается
   const clamp = (v: number) => Math.max(0, Math.min(N - 1, v))
   const go = (d: number) => setIdx((v) => clamp(v + d))
 
@@ -954,6 +955,7 @@ function MirrorsCarousel() {
   }
   const onSDown = (e: any) => {
     sdrag.current = true
+    setThumbPressed(true)
     e.currentTarget.setPointerCapture?.(e.pointerId)
     setFromX(e.clientX)
   }
@@ -962,6 +964,7 @@ function MirrorsCarousel() {
   }
   const onSUp = () => {
     sdrag.current = false
+    setThumbPressed(false)
   }
 
   const cardStyle = (i: number): React.CSSProperties => {
@@ -1071,7 +1074,9 @@ function MirrorsCarousel() {
             height: 39,
             borderRadius: 19.5,
             backgroundColor: 'rgba(250,250,250,0.9)',
-            transition: 'left 320ms cubic-bezier(0.22,1,0.36,1)',
+            transformOrigin: 'center center',
+            transform: thumbPressed ? 'scale(0.9)' : 'scale(1)', // под пальцем чуть уменьшается
+            transition: 'left 320ms cubic-bezier(0.22,1,0.36,1), transform 150ms ease',
           }}
         />
       </div>
